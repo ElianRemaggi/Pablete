@@ -1,5 +1,6 @@
 package com.instituto.siga.service;
 
+import com.instituto.siga.audit.AuditoriaPublisher;
 import com.instituto.siga.dto.request.LoginRequest;
 import com.instituto.siga.dto.request.RefreshTokenRequest;
 import com.instituto.siga.dto.response.LoginResponse;
@@ -42,6 +43,8 @@ class AuthServiceImplTest {
     private RefreshTokenRepository refreshTokenRepository;
     @Mock
     private JwtProvider jwtProvider;
+    @Mock
+    private AuditoriaPublisher auditoriaPublisher;
 
     private AuthServiceImpl authService;
 
@@ -49,7 +52,7 @@ class AuthServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        authService = new AuthServiceImpl(authenticationManager, usuarioRepository, refreshTokenRepository, jwtProvider);
+        authService = new AuthServiceImpl(authenticationManager, usuarioRepository, refreshTokenRepository, jwtProvider, auditoriaPublisher);
         ReflectionTestUtils.setField(authService, "refreshTokenExpMs", 604800000L);
 
         usuario = Usuario.builder()

@@ -1,5 +1,6 @@
 package com.instituto.siga.service;
 
+import com.instituto.siga.audit.AuditoriaPublisher;
 import com.instituto.siga.dto.request.UsuarioRequest;
 import com.instituto.siga.dto.request.UsuarioRolesRequest;
 import com.instituto.siga.dto.response.UsuarioResponse;
@@ -40,12 +41,14 @@ class UsuarioServiceImplTest {
     private UsuarioMapper usuarioMapper;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private AuditoriaPublisher auditoriaPublisher;
 
     private UsuarioServiceImpl usuarioService;
 
     @BeforeEach
     void setUp() {
-        usuarioService = new UsuarioServiceImpl(usuarioRepository, rolRepository, usuarioMapper, passwordEncoder);
+        usuarioService = new UsuarioServiceImpl(usuarioRepository, rolRepository, usuarioMapper, passwordEncoder, auditoriaPublisher);
     }
 
     @Test
@@ -85,7 +88,8 @@ class UsuarioServiceImplTest {
     @Test
     void crear_conDatosValidos_hasheaPasswordYResuelveRoles() {
         UsuarioRequest request = new UsuarioRequest("30999888", "nuevo@x.com", "N", "A", "Abcd1234", Set.of("ALUMNO"));
-        Usuario entidadMapeada = new Usuario();
+        Usuario entidadMapeada = Usuario.builder().dni(request.dni()).email(request.email())
+                .nombre(request.nombre()).apellido(request.apellido()).build();
         Rol rolAlumno = Rol.builder().id(1L).nombre("ALUMNO").build();
 
         when(usuarioRepository.existsByDni(any())).thenReturn(false);

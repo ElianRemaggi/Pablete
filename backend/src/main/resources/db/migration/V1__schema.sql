@@ -254,3 +254,13 @@ INSERT INTO rol (nombre, descripcion) VALUES
 ('ALUMNO', 'Rol de alumno'),
 ('PRECEPTOR', 'Rol de preceptor'),
 ('ADMINISTRADOR', 'Rol de administrador');
+
+-- Fila unica de configuracion, con valores placeholder: el administrador debe ajustarlas
+-- (PUT /api/v1/configuracion) apenas se despliega, antes de habilitar inscripciones reales.
+INSERT INTO configuracion_institucional
+(id, fecha_apertura_cursadas, fecha_cierre_cursadas, fecha_apertura_finales, fecha_cierre_finales,
+ limite_intentos_final, horas_bloqueo_final)
+VALUES (1,
+        DATE_ADD(NOW(), INTERVAL -30 DAY), DATE_ADD(NOW(), INTERVAL 60 DAY),
+        DATE_ADD(NOW(), INTERVAL -30 DAY), DATE_ADD(NOW(), INTERVAL 90 DAY),
+        3, 48);

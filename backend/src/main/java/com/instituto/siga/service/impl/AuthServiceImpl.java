@@ -1,5 +1,6 @@
 package com.instituto.siga.service.impl;
 
+import com.instituto.siga.audit.AuditoriaPublisher;
 import com.instituto.siga.dto.request.LoginRequest;
 import com.instituto.siga.dto.request.RefreshTokenRequest;
 import com.instituto.siga.dto.response.LoginResponse;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final UsuarioRepository usuarioRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtProvider jwtProvider;
+    private final AuditoriaPublisher auditoriaPublisher;
 
     @Value("${app.jwt.refresh-token-exp-ms}")
     private long refreshTokenExpMs;
@@ -48,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.dni(), request.password()));
         } catch (AuthenticationException ex) {
+            auditoriaPublisher.publicar(null, "LOGIN_FALLIDO", "Usuario", null, Map.of("dni", request.dni()));
             // Normaliza el mensaje (Spring devuelve "Bad credentials" en ingles) sin
             // revelar si fallo el DNI o la contraseña.
             throw new BadCredentialsException("DNI o contraseña incorrectos");
@@ -55,6 +59,9 @@ public class AuthServiceImpl implements AuthService {
 
         Usuario usuario = usuarioRepository.findByDni(request.dni())
                 .orElseThrow(() -> new BadCredentialsException("DNI o contraseña incorrectos"));
+
+        auditoriaPublisher.publicar(usuario.getId(), "LOGIN_EXITOSO", "Usuario", usuario.getId(),
+                Map.of("dni", usuario.getDni()));
 
         return buildLoginResponse(usuario);
     }
@@ -82,6 +89,7 @@ public class AuthServiceImpl implements AuthService {
                 .ifPresent(rt -> {
                     rt.setRevocado(true);
                     refreshTokenRepository.save(rt);
+                    auditoriaPublisher.publicar(rt.getUsuario().getId(), "LOGOUT", "RefreshToken", rt.getId(), Map.of());
                 });
     }
 

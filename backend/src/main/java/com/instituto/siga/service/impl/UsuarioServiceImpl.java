@@ -1,5 +1,6 @@
 package com.instituto.siga.service.impl;
 
+import com.instituto.siga.audit.AuditoriaPublisher;
 import com.instituto.siga.dto.request.UsuarioRequest;
 import com.instituto.siga.dto.request.UsuarioRolesRequest;
 import com.instituto.siga.dto.request.UsuarioUpdateRequest;
@@ -12,6 +13,7 @@ import com.instituto.siga.exception.ResourceNotFoundException;
 import com.instituto.siga.mapper.UsuarioMapper;
 import com.instituto.siga.repository.RolRepository;
 import com.instituto.siga.repository.UsuarioRepository;
+import com.instituto.siga.security.SecurityUtils;
 import com.instituto.siga.service.interfaces.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,6 +35,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final RolRepository rolRepository;
     private final UsuarioMapper usuarioMapper;
     private final PasswordEncoder passwordEncoder;
+    private final AuditoriaPublisher auditoriaPublisher;
 
     @Override
     @PreAuthorize("hasRole('ADMINISTRADOR')")
@@ -69,7 +73,11 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setActivo(true);
         usuario.setRoles(resolverRoles(request.roles()));
 
-        return usuarioMapper.toResponse(usuarioRepository.save(usuario));
+        Usuario guardado = usuarioRepository.save(usuario);
+        auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "USUARIO_CREADO", "Usuario", guardado.getId(),
+                Map.of("dni", guardado.getDni(), "roles", request.roles()));
+
+        return usuarioMapper.toResponse(guardado);
     }
 
     @Override
@@ -94,7 +102,12 @@ public class UsuarioServiceImpl implements UsuarioService {
             usuario.setActivo(request.activo());
         }
 
-        return usuarioMapper.toResponse(usuarioRepository.save(usuario));
+        Usuario guardado = usuarioRepository.save(usuario);
+        auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "USUARIO_MODIFICADO", "Usuario", guardado.getId(),
+                Map.of("email", guardado.getEmail(), "nombre", guardado.getNombre(),
+                        "apellido", guardado.getApellido(), "activo", guardado.isActivo()));
+
+        return usuarioMapper.toResponse(guardado);
     }
 
     @Override
@@ -103,7 +116,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioResponse activar(Long id) {
         Usuario usuario = buscarOFallar(id);
         usuario.setActivo(true);
-        return usuarioMapper.toResponse(usuarioRepository.save(usuario));
+        Usuario guardado = usuarioRepository.save(usuario);
+        auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "USUARIO_ACTIVADO", "Usuario", guardado.getId(), Map.of());
+        return usuarioMapper.toResponse(guardado);
     }
 
     @Override
@@ -112,7 +127,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioResponse desactivar(Long id) {
         Usuario usuario = buscarOFallar(id);
         usuario.setActivo(false);
-        return usuarioMapper.toResponse(usuarioRepository.save(usuario));
+        Usuario guardado = usuarioRepository.save(usuario);
+        auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "USUARIO_DESACTIVADO", "Usuario", guardado.getId(), Map.of());
+        return usuarioMapper.toResponse(guardado);
     }
 
     @Override
@@ -121,7 +138,10 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioResponse actualizarRoles(Long id, UsuarioRolesRequest request) {
         Usuario usuario = buscarOFallar(id);
         usuario.setRoles(resolverRoles(request.roles()));
-        return usuarioMapper.toResponse(usuarioRepository.save(usuario));
+        Usuario guardado = usuarioRepository.save(usuario);
+        auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "USUARIO_ROLES_ACTUALIZADOS", "Usuario",
+                guardado.getId(), Map.of("roles", request.roles()));
+        return usuarioMapper.toResponse(guardado);
     }
 
     private Usuario buscarOFallar(Long id) {

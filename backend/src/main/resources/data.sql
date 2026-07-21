@@ -17,3 +17,13 @@ INSERT INTO usuario_rol (usuario_id, rol_id) VALUES
 (1, (SELECT id FROM rol WHERE nombre = 'ADMINISTRADOR')),
 (2, (SELECT id FROM rol WHERE nombre = 'PRECEPTOR')),
 (3, (SELECT id FROM rol WHERE nombre = 'ALUMNO'));
+
+-- Ventanas de inscripcion abiertas por defecto (fechas relativas a hoy, no fijas) para que
+-- el pipeline de inscripciones tenga algo utilizable apenas se levanta el entorno de dev.
+INSERT INTO configuracion_institucional
+(id, fecha_apertura_cursadas, fecha_cierre_cursadas, fecha_apertura_finales, fecha_cierre_finales,
+ limite_intentos_final, horas_bloqueo_final)
+VALUES (1,
+        DATEADD('DAY', -30, CURRENT_TIMESTAMP), DATEADD('DAY', 60, CURRENT_TIMESTAMP),
+        DATEADD('DAY', -30, CURRENT_TIMESTAMP), DATEADD('DAY', 90, CURRENT_TIMESTAMP),
+        3, 48);

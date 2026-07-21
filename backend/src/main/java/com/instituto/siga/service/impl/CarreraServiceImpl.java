@@ -1,5 +1,6 @@
 package com.instituto.siga.service.impl;
 
+import com.instituto.siga.audit.AuditoriaPublisher;
 import com.instituto.siga.dto.request.CarreraRequest;
 import com.instituto.siga.dto.response.CarreraResponse;
 import com.instituto.siga.entity.Carrera;
@@ -7,6 +8,7 @@ import com.instituto.siga.exception.ConflictException;
 import com.instituto.siga.exception.ResourceNotFoundException;
 import com.instituto.siga.mapper.CarreraMapper;
 import com.instituto.siga.repository.CarreraRepository;
+import com.instituto.siga.security.SecurityUtils;
 import com.instituto.siga.service.interfaces.CarreraService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class CarreraServiceImpl implements CarreraService {
 
     private final CarreraRepository carreraRepository;
     private final CarreraMapper carreraMapper;
+    private final AuditoriaPublisher auditoriaPublisher;
 
     @Override
     @Transactional(readOnly = true)
@@ -39,7 +43,11 @@ public class CarreraServiceImpl implements CarreraService {
         Carrera carrera = carreraMapper.toEntity(request);
         carrera.setActiva(true);
 
-        return carreraMapper.toResponse(carreraRepository.save(carrera));
+        Carrera guardada = carreraRepository.save(carrera);
+        auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "CARRERA_CREADA", "Carrera", guardada.getId(),
+                Map.of("codigo", guardada.getCodigo(), "nombre", guardada.getNombre()));
+
+        return carreraMapper.toResponse(guardada);
     }
 
     @Override
@@ -55,7 +63,11 @@ public class CarreraServiceImpl implements CarreraService {
         carrera.setCodigo(request.codigo());
         carrera.setNombre(request.nombre());
 
-        return carreraMapper.toResponse(carreraRepository.save(carrera));
+        Carrera guardada = carreraRepository.save(carrera);
+        auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "CARRERA_ACTUALIZADA", "Carrera", guardada.getId(),
+                Map.of("codigo", guardada.getCodigo(), "nombre", guardada.getNombre()));
+
+        return carreraMapper.toResponse(guardada);
     }
 
     @Override
@@ -64,7 +76,8 @@ public class CarreraServiceImpl implements CarreraService {
     public void darDeBaja(Long id) {
         Carrera carrera = buscarOFallar(id);
         carrera.setActiva(false);
-        carreraRepository.save(carrera);
+        Carrera guardada = carreraRepository.save(carrera);
+        auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "CARRERA_BAJA", "Carrera", guardada.getId(), Map.of());
     }
 
     private Carrera buscarOFallar(Long id) {
