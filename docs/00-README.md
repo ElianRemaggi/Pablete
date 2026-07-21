@@ -23,4 +23,6 @@ Cada documento es independiente pero se referencian entre sí. El orden recomend
 
 ## Estado del proyecto
 
-Etapa actual: **Análisis completo y diseño de arquitectura** (Etapa 1 de 6). Ver `10-roadmap-entregables.md` para el detalle de todas las etapas y qué sigue después de esta entrega.
+Análisis y arquitectura (Etapa 1) completos, y en desarrollo activo el backend (Etapas 2-4). Implementado y con tests (unitarios + integración) en `backend/`: autenticación JWT, ABM de usuarios, y CRUD completo de Carrera, Materia, Correlatividad (con detección de ciclos), Comisión/Horario (con detección de superposición), Mesa de Examen, Configuración Institucional y Auditoría (evento genérico, wireado en todos los servicios anteriores).
+
+Pendiente: Plan de Estudio, el pipeline de validadores de Inscripción a Cursada/Final (Etapa 5), certificados PDF y exportación Excel, frontend completo (Etapa 6), y despliegue (Etapa 8). Ver `10-roadmap-entregables.md` para el detalle por etapa, y `../CLAUDE.md` en la raíz del repo para el estado técnico exacto (paquetes, comandos, decisiones tomadas durante la implementación) que guía a quien retome el desarrollo.

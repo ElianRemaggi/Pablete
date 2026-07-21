@@ -4,26 +4,29 @@
 
 | Etapa | Nombre | Contenido | Estado |
 |---|---|---|---|
-| 1 | Análisis y arquitectura | Documentos 01-09 de esta entrega: contexto, arquitectura, modelo de datos, entidades/DTO, API, frontend, seguridad, reglas de negocio, auditoría, diagramas | **Completada (esta entrega)** |
-| 2 | Setup de proyecto | Scaffolding backend (Spring Initializr, estructura de paquetes), scaffolding frontend (Vite + React + TS), docker-compose base, CI básico | Pendiente |
-| 3 | Backend — dominio base | Entidades JPA, migraciones (Flyway/Liquibase) a partir del DDL, repositories, seguridad JWT completa, autenticación funcional | Pendiente |
-| 4 | Backend — módulos académicos | Carreras, planes, materias, correlatividades, comisiones, horarios, mesas de examen (CRUD + validaciones) | Pendiente |
-| 5 | Backend — inscripciones | Inscripción a cursadas y finales con el pipeline completo de validadores, generación de PDF y Excel, auditoría por eventos | Pendiente |
+| 1 | Análisis y arquitectura | Documentos 01-09 de esta entrega: contexto, arquitectura, modelo de datos, entidades/DTO, API, frontend, seguridad, reglas de negocio, auditoría, diagramas | **Completada** |
+| 2 | Setup de proyecto | Scaffolding backend (Maven, estructura de paquetes) | **Completada (backend)**. Scaffolding frontend, docker-compose y CI: pendientes |
+| 3 | Backend — dominio base | Entidades JPA, migraciones (Flyway) a partir del DDL, repositories, seguridad JWT completa, autenticación funcional | **Completada** |
+| 4 | Backend — módulos académicos | Carreras, materias, correlatividades, comisiones, horarios, mesas de examen (CRUD + validaciones) | **Completada**, salvo Planes de Estudio (`plan_estudio`/`plan_materia`, pendiente) |
+| 4.5 | Backend — configuración institucional y auditoría | Adelantado desde la Etapa 5: ConfiguracionInstitucional (fechas, límite de intentos, bloqueo) y auditoría por eventos (`docs/08`) wireada en todos los servicios existentes | **Completada** |
+| 5 | Backend — inscripciones | Inscripción a cursadas y finales con el pipeline completo de validadores, generación de PDF y Excel | Pendiente |
 | 6 | Frontend — dashboards | Login, dashboard Alumno, Preceptor, Administrador, todos los módulos CRUD y de inscripción conectados a la API real | Pendiente |
-| 7 | Endurecimiento | Rate limiting, revisión de seguridad, tests de integración de reglas de negocio, tests E2E de flujos críticos, documentación Swagger final | Pendiente |
+| 7 | Endurecimiento | Rate limiting, revisión de seguridad final, tests E2E de flujos críticos, documentación Swagger final | Pendiente (hay tests unitarios/integración por módulo desde la Etapa 3, falta la pasada final) |
 | 8 | Despliegue | Contenerización final, pipeline CI/CD, entorno de staging, capacitación a personal administrativo, migración de datos históricos desde Excel | Pendiente |
+
+Ver `../CLAUDE.md` (raíz del repo) para el detalle técnico exacto de lo implementado: comandos de build/test, paquetes reales, y decisiones/desvíos puntuales respecto a este documento que surgieron al implementar (por ejemplo, `Comision`/`MesaExamen` no tienen baja lógica porque el DDL no les da columna `activa`).
 
 ## 2. Backlog técnico priorizado (alto nivel)
 
 **Must have (MVP):**
-- Autenticación JWT (login, refresh, logout).
-- ABM de usuarios y roles.
-- ABM de oferta académica (carrera, plan, materia, correlatividad, comisión, horario, mesa de examen).
-- Inscripción y baja a cursadas con validaciones completas.
-- Inscripción y baja a finales con validaciones completas.
-- Historial académico del alumno.
-- Configuración institucional (fechas, límite de intentos, bloqueo de finales).
-- Auditoría de acciones críticas.
+- ✅ Autenticación JWT (login, refresh, logout).
+- ✅ ABM de usuarios y roles.
+- ✅ ABM de oferta académica (carrera, materia, correlatividad, comisión, horario, mesa de examen). Plan de estudio: pendiente.
+- Inscripción y baja a cursadas con validaciones completas — pendiente.
+- Inscripción y baja a finales con validaciones completas — pendiente.
+- Historial académico del alumno — pendiente (depende de `estado_academico_materia`, no implementado).
+- ✅ Configuración institucional (fechas, límite de intentos, bloqueo de finales).
+- ✅ Auditoría de acciones críticas.
 
 **Should have:**
 - Exportación a Excel (inscriptos por comisión/mesa, listado general de alumnos).
