@@ -1,6 +1,7 @@
 package com.instituto.siga.controller;
 
 import com.instituto.siga.dto.request.MateriaRequest;
+import com.instituto.siga.dto.request.PlanMateriaRequest;
 import com.instituto.siga.dto.response.MateriaResponse;
 import com.instituto.siga.service.interfaces.MateriaService;
 import jakarta.validation.Valid;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -25,8 +27,11 @@ public class MateriaController {
     private final MateriaService materiaService;
 
     @GetMapping
-    public ResponseEntity<List<MateriaResponse>> listar() {
-        return ResponseEntity.ok(materiaService.listar());
+    public ResponseEntity<List<MateriaResponse>> listar(
+            @RequestParam(required = false) Long carreraId,
+            @RequestParam(required = false) Long planId,
+            @RequestParam(required = false) Integer anio) {
+        return ResponseEntity.ok(materiaService.listar(carreraId, planId, anio));
     }
 
     @GetMapping("/{id}")
@@ -49,5 +54,12 @@ public class MateriaController {
     public ResponseEntity<Void> darDeBaja(@PathVariable Long id) {
         materiaService.darDeBaja(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/plan/{planId}")
+    public ResponseEntity<Void> asociarAPlan(@PathVariable Long id, @PathVariable Long planId,
+                                              @Valid @RequestBody PlanMateriaRequest request) {
+        materiaService.asociarAPlan(id, planId, request);
+        return ResponseEntity.ok().build();
     }
 }

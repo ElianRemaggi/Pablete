@@ -18,6 +18,10 @@ INSERT INTO usuario_rol (usuario_id, rol_id) VALUES
 (2, (SELECT id FROM rol WHERE nombre = 'PRECEPTOR')),
 (3, (SELECT id FROM rol WHERE nombre = 'ALUMNO'));
 
+-- alumno1 (usuario_id=3) se sembro con SQL crudo antes de que existiera el alta automatica
+-- de Alumno en UsuarioServiceImpl; sin esta fila, ninguna inscripcion podria referenciarlo.
+INSERT INTO alumno (usuario_id, legajo, fecha_ingreso) VALUES (3, 'LEG-0003', CURRENT_DATE);
+
 -- Ventanas de inscripcion abiertas por defecto (fechas relativas a hoy, no fijas) para que
 -- el pipeline de inscripciones tenga algo utilizable apenas se levanta el entorno de dev.
 INSERT INTO configuracion_institucional

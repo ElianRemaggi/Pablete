@@ -2,12 +2,17 @@ package com.instituto.siga.service.impl;
 
 import com.instituto.siga.audit.AuditoriaPublisher;
 import com.instituto.siga.dto.request.MateriaRequest;
+import com.instituto.siga.dto.request.PlanMateriaRequest;
 import com.instituto.siga.dto.response.MateriaResponse;
 import com.instituto.siga.entity.Materia;
+import com.instituto.siga.entity.PlanEstudio;
+import com.instituto.siga.entity.PlanMateria;
 import com.instituto.siga.exception.ConflictException;
 import com.instituto.siga.exception.ResourceNotFoundException;
 import com.instituto.siga.mapper.MateriaMapper;
 import com.instituto.siga.repository.MateriaRepository;
+import com.instituto.siga.repository.PlanEstudioRepository;
+import com.instituto.siga.repository.PlanMateriaRepository;
 import com.instituto.siga.security.SecurityUtils;
 import com.instituto.siga.service.interfaces.MateriaService;
 import lombok.RequiredArgsConstructor;
@@ -18,23 +23,20 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Nota: docs/04-api-endpoints.md SS5 preve filtros por carrera/plan/anio en el listado,
- * dependientes de PlanEstudio/PlanMateria (no implementados aun). Se agregan cuando
- * ese modulo exista; por ahora el listado es simple.
- */
 @Service
 @RequiredArgsConstructor
 public class MateriaServiceImpl implements MateriaService {
 
     private final MateriaRepository materiaRepository;
+    private final PlanEstudioRepository planEstudioRepository;
+    private final PlanMateriaRepository planMateriaRepository;
     private final MateriaMapper materiaMapper;
     private final AuditoriaPublisher auditoriaPublisher;
 
     @Override
     @Transactional(readOnly = true)
-    public List<MateriaResponse> listar() {
-        return materiaRepository.findAll().stream().map(materiaMapper::toResponse).toList();
+    public List<MateriaResponse> listar(Long carreraId, Long planId, Integer anio) {
+        return materiaRepository.buscar(carreraId, planId, anio).stream().map(materiaMapper::toResponse).toList();
     }
 
     @Override
@@ -89,6 +91,27 @@ public class MateriaServiceImpl implements MateriaService {
         materia.setActiva(false);
         Materia guardada = materiaRepository.save(materia);
         auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "MATERIA_BAJA", "Materia", guardada.getId(), Map.of());
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @Transactional
+    public void asociarAPlan(Long materiaId, Long planId, PlanMateriaRequest request) {
+        Materia materia = buscarOFallar(materiaId);
+        PlanEstudio plan = planEstudioRepository.findById(planId)
+                .orElseThrow(() -> new ResourceNotFoundException("Plan de estudio no encontrado: " + planId));
+
+        if (planMateriaRepository.existsByPlanIdAndMateriaId(planId, materiaId)) {
+            throw new ConflictException("MATERIA_YA_ASOCIADA_AL_PLAN", "Esa materia ya está asociada a este plan");
+        }
+
+        PlanMateria planMateria = PlanMateria.builder()
+                .plan(plan).materia(materia).anio(request.anio()).cuatrimestre(request.cuatrimestre())
+                .build();
+        planMateriaRepository.save(planMateria);
+
+        auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "MATERIA_ASOCIADA_A_PLAN", "PlanMateria", planId,
+                Map.of("materiaId", materiaId, "anio", request.anio(), "cuatrimestre", request.cuatrimestre()));
     }
 
     private Materia buscarOFallar(Long id) {

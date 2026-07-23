@@ -67,22 +67,35 @@ class ConfiguracionInstitucionalControllerIT {
         String admin = tokenPara("30111222", "Admin1234");
         LocalDateTime ahora = LocalDateTime.now();
 
-        ConfiguracionInstitucionalRequest valido = new ConfiguracionInstitucionalRequest(
-                ahora, ahora.plusDays(45), ahora, ahora.plusDays(90), 4, 72);
-        mockMvc.perform(put("/api/v1/configuracion")
-                        .header("Authorization", "Bearer " + admin)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(valido)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.limiteIntentosFinal").value(4));
+        try {
+            ConfiguracionInstitucionalRequest valido = new ConfiguracionInstitucionalRequest(
+                    ahora, ahora.plusDays(45), ahora, ahora.plusDays(90), 4, 72);
+            mockMvc.perform(put("/api/v1/configuracion")
+                            .header("Authorization", "Bearer " + admin)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(valido)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.limiteIntentosFinal").value(4));
 
-        ConfiguracionInstitucionalRequest invalido = new ConfiguracionInstitucionalRequest(
-                ahora, ahora.minusDays(1), ahora, ahora.plusDays(90), 4, 72);
-        mockMvc.perform(put("/api/v1/configuracion")
-                        .header("Authorization", "Bearer " + admin)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalido)))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.codigo").value("CONFIGURACION_FECHAS_INVALIDAS"));
+            ConfiguracionInstitucionalRequest invalido = new ConfiguracionInstitucionalRequest(
+                    ahora, ahora.minusDays(1), ahora, ahora.plusDays(90), 4, 72);
+            mockMvc.perform(put("/api/v1/configuracion")
+                            .header("Authorization", "Bearer " + admin)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(invalido)))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.codigo").value("CONFIGURACION_FECHAS_INVALIDAS"));
+        } finally {
+            // ConfiguracionInstitucional es un singleton global compartido por TODA la suite de
+            // IT (mismo H2, mismo contexto cacheado) — sin restaurar esto, cualquier otro test
+            // que dependa de los valores sembrados (limiteIntentosFinal=3, horasBloqueoFinal=48)
+            // queda roto segun el orden en que corran las clases de test.
+            ConfiguracionInstitucionalRequest original = new ConfiguracionInstitucionalRequest(
+                    ahora.minusDays(30), ahora.plusDays(60), ahora.minusDays(30), ahora.plusDays(90), 3, 48);
+            mockMvc.perform(put("/api/v1/configuracion")
+                    .header("Authorization", "Bearer " + admin)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(original)));
+        }
     }
 }

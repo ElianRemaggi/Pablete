@@ -5,12 +5,14 @@ import com.instituto.siga.dto.request.UsuarioRequest;
 import com.instituto.siga.dto.request.UsuarioRolesRequest;
 import com.instituto.siga.dto.request.UsuarioUpdateRequest;
 import com.instituto.siga.dto.response.UsuarioResponse;
+import com.instituto.siga.entity.Alumno;
 import com.instituto.siga.entity.Rol;
 import com.instituto.siga.entity.Usuario;
 import com.instituto.siga.exception.BusinessException;
 import com.instituto.siga.exception.ConflictException;
 import com.instituto.siga.exception.ResourceNotFoundException;
 import com.instituto.siga.mapper.UsuarioMapper;
+import com.instituto.siga.repository.AlumnoRepository;
 import com.instituto.siga.repository.RolRepository;
 import com.instituto.siga.repository.UsuarioRepository;
 import com.instituto.siga.security.SecurityUtils;
@@ -23,6 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,8 +34,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UsuarioServiceImpl implements UsuarioService {
 
+    private static final String ROL_ALUMNO = "ALUMNO";
+
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
+    private final AlumnoRepository alumnoRepository;
     private final UsuarioMapper usuarioMapper;
     private final PasswordEncoder passwordEncoder;
     private final AuditoriaPublisher auditoriaPublisher;
@@ -74,6 +80,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setRoles(resolverRoles(request.roles()));
 
         Usuario guardado = usuarioRepository.save(usuario);
+        asegurarAlumnoSiCorresponde(guardado);
         auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "USUARIO_CREADO", "Usuario", guardado.getId(),
                 Map.of("dni", guardado.getDni(), "roles", request.roles()));
 
@@ -139,6 +146,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         Usuario usuario = buscarOFallar(id);
         usuario.setRoles(resolverRoles(request.roles()));
         Usuario guardado = usuarioRepository.save(usuario);
+        asegurarAlumnoSiCorresponde(guardado);
         auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "USUARIO_ROLES_ACTUALIZADOS", "Usuario",
                 guardado.getId(), Map.of("roles", request.roles()));
         return usuarioMapper.toResponse(guardado);
@@ -147,6 +155,22 @@ public class UsuarioServiceImpl implements UsuarioService {
     private Usuario buscarOFallar(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + id));
+    }
+
+    /**
+     * docs/03 modela Alumno como subtipo 1:1 de Usuario, pero no hay endpoint documentado de
+     * alta separada — se crea aca, al asignar el rol, con legajo generado deterministicamente.
+     */
+    private void asegurarAlumnoSiCorresponde(Usuario usuario) {
+        boolean esAlumno = usuario.getRoles().stream().anyMatch(r -> ROL_ALUMNO.equals(r.getNombre()));
+        if (esAlumno && !alumnoRepository.existsById(usuario.getId())) {
+            Alumno alumno = Alumno.builder()
+                    .usuario(usuario)
+                    .legajo("LEG-" + String.format("%04d", usuario.getId()))
+                    .fechaIngreso(LocalDate.now())
+                    .build();
+            alumnoRepository.save(alumno);
+        }
     }
 
     private Set<Rol> resolverRoles(Set<String> nombresRoles) {

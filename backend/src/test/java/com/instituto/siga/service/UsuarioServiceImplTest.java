@@ -10,6 +10,7 @@ import com.instituto.siga.exception.BusinessException;
 import com.instituto.siga.exception.ConflictException;
 import com.instituto.siga.exception.ResourceNotFoundException;
 import com.instituto.siga.mapper.UsuarioMapper;
+import com.instituto.siga.repository.AlumnoRepository;
 import com.instituto.siga.repository.RolRepository;
 import com.instituto.siga.repository.UsuarioRepository;
 import com.instituto.siga.service.impl.UsuarioServiceImpl;
@@ -27,6 +28,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +40,8 @@ class UsuarioServiceImplTest {
     @Mock
     private RolRepository rolRepository;
     @Mock
+    private AlumnoRepository alumnoRepository;
+    @Mock
     private UsuarioMapper usuarioMapper;
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -48,7 +52,8 @@ class UsuarioServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        usuarioService = new UsuarioServiceImpl(usuarioRepository, rolRepository, usuarioMapper, passwordEncoder, auditoriaPublisher);
+        usuarioService = new UsuarioServiceImpl(usuarioRepository, rolRepository, alumnoRepository, usuarioMapper, passwordEncoder, auditoriaPublisher);
+        lenient().when(alumnoRepository.existsById(any())).thenReturn(false);
     }
 
     @Test

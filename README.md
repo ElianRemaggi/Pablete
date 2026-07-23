@@ -8,11 +8,14 @@ Backend en desarrollo activo sobre Spring Boot. Implementado y con tests (unitar
 
 - Autenticación JWT (login por DNI, refresh, logout)
 - ABM de usuarios y roles
-- CRUD de Carrera, Materia, Correlatividad (con detección de ciclos), Comisión/Horario (con detección de superposición horaria), Mesa de Examen
+- CRUD de Carrera, Materia (+ Plan de Estudio y asociación Materia-Plan), Correlatividad (con detección de ciclos), Comisión/Horario (con detección de superposición horaria), Mesa de Examen
+- Inscripción a cursadas y a finales, con el pipeline completo de validaciones de negocio (correlatividad, superposición horaria, cupo, regularidad, límite de intentos, ventanas de fecha)
+- Historial académico del alumno (materias aprobadas/pendientes)
+- Certificados PDF (alumno regular, analítico parcial) y exportación a Excel (inscriptos por comisión/mesa, listado de alumnos)
 - Configuración institucional (ventanas de inscripción, límite de intentos)
 - Auditoría de toda acción sensible (evento genérico + listener asíncrono)
 
-Pendiente: Plan de Estudio, el pipeline de inscripción a cursadas/finales, certificados PDF, exportación a Excel, frontend, y despliegue. Ver el detalle etapa por etapa en [`docs/10-roadmap-entregables.md`](docs/10-roadmap-entregables.md).
+Con esto el backend cubre el MVP completo ("Must have"/"Should have") de `docs/10-roadmap-entregables.md` §2. Pendiente: frontend, despliegue, rate limiting y reportes con gráficos. Ver el detalle etapa por etapa en [`docs/10-roadmap-entregables.md`](docs/10-roadmap-entregables.md).
 
 ## Documentación
 
@@ -44,4 +47,4 @@ Para producción (perfil `prod`) usa MySQL 8 + migraciones Flyway; ver `backend/
 
 ## Stack
 
-Java 17, Spring Boot 3, Spring Security 6 (JWT), Spring Data JPA, MapStruct, Maven, H2 (dev) / MySQL 8 (prod) + Flyway.
+Java 17, Spring Boot 3, Spring Security 6 (JWT), Spring Data JPA, MapStruct, Maven, H2 (dev) / MySQL 8 (prod) + Flyway, OpenPDF (certificados), Apache POI (exportación Excel).

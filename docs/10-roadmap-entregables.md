@@ -7,9 +7,9 @@
 | 1 | Análisis y arquitectura | Documentos 01-09 de esta entrega: contexto, arquitectura, modelo de datos, entidades/DTO, API, frontend, seguridad, reglas de negocio, auditoría, diagramas | **Completada** |
 | 2 | Setup de proyecto | Scaffolding backend (Maven, estructura de paquetes) | **Completada (backend)**. Scaffolding frontend, docker-compose y CI: pendientes |
 | 3 | Backend — dominio base | Entidades JPA, migraciones (Flyway) a partir del DDL, repositories, seguridad JWT completa, autenticación funcional | **Completada** |
-| 4 | Backend — módulos académicos | Carreras, materias, correlatividades, comisiones, horarios, mesas de examen (CRUD + validaciones) | **Completada**, salvo Planes de Estudio (`plan_estudio`/`plan_materia`, pendiente) |
+| 4 | Backend — módulos académicos | Carreras, materias, correlatividades, comisiones, horarios, mesas de examen, planes de estudio (`plan_estudio`/`plan_materia`) (CRUD + validaciones) | **Completada** |
 | 4.5 | Backend — configuración institucional y auditoría | Adelantado desde la Etapa 5: ConfiguracionInstitucional (fechas, límite de intentos, bloqueo) y auditoría por eventos (`docs/08`) wireada en todos los servicios existentes | **Completada** |
-| 5 | Backend — inscripciones | Inscripción a cursadas y finales con el pipeline completo de validadores, generación de PDF y Excel | Pendiente |
+| 5 | Backend — inscripciones, historial, certificados y exportación | Inscripción a cursadas y finales con el pipeline completo de validadores; alumnos + historial académico; generación de certificados PDF (OpenPDF); exportación a Excel (Apache POI) | **Completada** |
 | 6 | Frontend — dashboards | Login, dashboard Alumno, Preceptor, Administrador, todos los módulos CRUD y de inscripción conectados a la API real | Pendiente |
 | 7 | Endurecimiento | Rate limiting, revisión de seguridad final, tests E2E de flujos críticos, documentación Swagger final | Pendiente (hay tests unitarios/integración por módulo desde la Etapa 3, falta la pasada final) |
 | 8 | Despliegue | Contenerización final, pipeline CI/CD, entorno de staging, capacitación a personal administrativo, migración de datos históricos desde Excel | Pendiente |
@@ -21,17 +21,17 @@ Ver `../CLAUDE.md` (raíz del repo) para el detalle técnico exacto de lo implem
 **Must have (MVP):**
 - ✅ Autenticación JWT (login, refresh, logout).
 - ✅ ABM de usuarios y roles.
-- ✅ ABM de oferta académica (carrera, materia, correlatividad, comisión, horario, mesa de examen). Plan de estudio: pendiente.
-- Inscripción y baja a cursadas con validaciones completas — pendiente.
-- Inscripción y baja a finales con validaciones completas — pendiente.
-- Historial académico del alumno — pendiente (depende de `estado_academico_materia`, no implementado).
+- ✅ ABM de oferta académica (carrera, materia, correlatividad, comisión, horario, mesa de examen, plan de estudio).
+- ✅ Inscripción y baja a cursadas con validaciones completas.
+- ✅ Inscripción y baja a finales con validaciones completas.
+- ✅ Historial académico del alumno (`/alumnos/me/historial-academico`, materias aprobadas/pendientes).
 - ✅ Configuración institucional (fechas, límite de intentos, bloqueo de finales).
 - ✅ Auditoría de acciones críticas.
 
 **Should have:**
-- Exportación a Excel (inscriptos por comisión/mesa, listado general de alumnos).
-- Generación de certificados PDF (alumno regular, analítico parcial).
-- Reportes con gráficos (ocupación de cupos, tasa de aprobación).
+- ✅ Exportación a Excel (inscriptos por comisión/mesa, listado general de alumnos).
+- ✅ Generación de certificados PDF (alumno regular, analítico parcial).
+- Reportes con gráficos (ocupación de cupos, tasa de aprobación) — pendiente.
 
 **Could have:**
 - Notificaciones por email ante cambios de estado de inscripción o proximidad de cierre de fechas.
