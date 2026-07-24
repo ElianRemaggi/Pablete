@@ -16,4 +16,6 @@ public interface InscripcionFinalService {
     List<InscripcionFinalResponse> listarPropias(Long alumnoId);
 
     List<InscripcionFinalResponse> listarPorMesa(Long mesaId);
+
+    List<InscripcionFinalResponse> listarPorAlumno(Long alumnoId);
 }

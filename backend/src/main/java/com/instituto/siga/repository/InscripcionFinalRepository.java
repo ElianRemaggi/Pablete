@@ -28,4 +28,7 @@ public interface InscripcionFinalRepository extends JpaRepository<InscripcionFin
 
     @Query("SELECT i FROM InscripcionFinal i WHERE i.id = :id AND i.alumno.usuarioId = :alumnoId")
     Optional<InscripcionFinal> findByIdAndAlumnoId(@Param("id") Long id, @Param("alumnoId") Long alumnoId);
+
+    @Query("SELECT i FROM InscripcionFinal i WHERE i.alumno.usuarioId = :alumnoId")
+    List<InscripcionFinal> findByAlumnoId(@Param("alumnoId") Long alumnoId);
 }

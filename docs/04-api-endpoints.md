@@ -86,6 +86,7 @@ Convención general: prefijo `/api/v1`. Respuestas de error usan `ErrorResponse`
 | PUT | `/inscripciones-cursada/{id}` | ALUMNO | Modificar inscripción (antes del cierre) |
 | DELETE | `/inscripciones-cursada/{id}` | ALUMNO | Dar de baja inscripción |
 | GET | `/inscripciones-cursada/comision/{comisionId}` | PRECEPTOR, ADMIN | Listado de inscriptos por comisión |
+| GET | `/inscripciones-cursada/alumno/{alumnoId}` | PRECEPTOR, ADMIN | Historial de inscripciones a cursada de un alumno puntual (agregado tras implementar el frontend — no estaba en el diseño original) |
 
 ## 9. Mesas de examen — `/api/v1/mesas-examen`
 
@@ -105,6 +106,7 @@ Convención general: prefijo `/api/v1`. Respuestas de error usan `ErrorResponse`
 | PUT | `/inscripciones-final/{id}` | ALUMNO | Modificar (antes del cierre) |
 | DELETE | `/inscripciones-final/{id}` | ALUMNO | Dar de baja |
 | GET | `/inscripciones-final/mesa/{mesaId}` | PRECEPTOR, ADMIN | Listado de inscriptos por mesa |
+| GET | `/inscripciones-final/alumno/{alumnoId}` | PRECEPTOR, ADMIN | Historial de inscripciones a final de un alumno puntual (agregado tras implementar el frontend — no estaba en el diseño original) |
 
 ## 11. Certificados — `/api/v1/certificados`
 
@@ -137,7 +139,13 @@ Convención general: prefijo `/api/v1`. Respuestas de error usan `ErrorResponse`
 | GET | `/auditoria` | ADMIN | Listado paginado con filtros (usuario, acción, entidad, rango de fechas) |
 | GET | `/auditoria/{id}` | ADMIN | Detalle de un evento de auditoría |
 
-## 15. Convenciones de error
+## 15. Reportes — `/api/v1/reportes`
+
+| Método | Endpoint | Rol | Descripción |
+|---|---|---|---|
+| GET | `/reportes/tasa-aprobacion-por-materia` | PRECEPTOR, ADMIN | Aprobadas vs. total de `estado_academico_materia` por materia (agregado tras implementar el frontend — no estaba en el diseño original; ocupación de cupos e inscriptos por comisión, mencionados en `docs/05` §6, se resuelven en el frontend combinando `GET /comisiones` con `GET /inscripciones-cursada/comision/{id}`, sin necesitar un endpoint propio) |
+
+## 16. Convenciones de error
 
 | Código HTTP | Uso |
 |---|---|

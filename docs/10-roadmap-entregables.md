@@ -10,7 +10,7 @@
 | 4 | Backend — módulos académicos | Carreras, materias, correlatividades, comisiones, horarios, mesas de examen, planes de estudio (`plan_estudio`/`plan_materia`) (CRUD + validaciones) | **Completada** |
 | 4.5 | Backend — configuración institucional y auditoría | Adelantado desde la Etapa 5: ConfiguracionInstitucional (fechas, límite de intentos, bloqueo) y auditoría por eventos (`docs/08`) wireada en todos los servicios existentes | **Completada** |
 | 5 | Backend — inscripciones, historial, certificados y exportación | Inscripción a cursadas y finales con el pipeline completo de validadores; alumnos + historial académico; generación de certificados PDF (OpenPDF); exportación a Excel (Apache POI) | **Completada** |
-| 6 | Frontend — dashboards | Login, dashboard Alumno, Preceptor, Administrador, todos los módulos CRUD y de inscripción conectados a la API real | Pendiente |
+| 6 | Frontend — dashboards | Login, dashboard Alumno, Preceptor, Administrador, todos los módulos CRUD y de inscripción conectados a la API real | **Completada**, salvo Horarios (sin recurso propio en el backend, se gestiona dentro de Comisiones) y dos pestañas de Ficha de Alumno que dependen de endpoints que el backend todavía no expone |
 | 7 | Endurecimiento | Rate limiting, revisión de seguridad final, tests E2E de flujos críticos, documentación Swagger final | Pendiente (hay tests unitarios/integración por módulo desde la Etapa 3, falta la pasada final) |
 | 8 | Despliegue | Contenerización final, pipeline CI/CD, entorno de staging, capacitación a personal administrativo, migración de datos históricos desde Excel | Pendiente |
 

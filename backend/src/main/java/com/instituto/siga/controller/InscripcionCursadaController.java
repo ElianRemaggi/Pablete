@@ -53,4 +53,9 @@ public class InscripcionCursadaController {
     public ResponseEntity<List<InscripcionCursadaResponse>> listarPorComision(@PathVariable Long comisionId) {
         return ResponseEntity.ok(inscripcionCursadaService.listarPorComision(comisionId));
     }
+
+    @GetMapping("/alumno/{alumnoId}")
+    public ResponseEntity<List<InscripcionCursadaResponse>> listarPorAlumno(@PathVariable Long alumnoId) {
+        return ResponseEntity.ok(inscripcionCursadaService.listarPorAlumno(alumnoId));
+    }
 }

@@ -20,4 +20,12 @@ public interface EstadoAcademicoMateriaRepository extends JpaRepository<EstadoAc
 
     @Query("SELECT e FROM EstadoAcademicoMateria e WHERE e.alumno.usuarioId = :alumnoId")
     List<EstadoAcademicoMateria> findByAlumnoId(@Param("alumnoId") Long alumnoId);
+
+    /** Filas (materiaId, materiaNombre, aprobadas, total) para el reporte de tasa de aprobacion. */
+    @Query("SELECT m.id, m.nombre, "
+            + "SUM(CASE WHEN e.estado = com.instituto.siga.entity.EstadoMateria.APROBADA THEN 1L ELSE 0L END), "
+            + "COUNT(e) "
+            + "FROM EstadoAcademicoMateria e JOIN e.materia m "
+            + "GROUP BY m.id, m.nombre")
+    List<Object[]> calcularTasaAprobacionPorMateria();
 }

@@ -271,4 +271,30 @@ class InscripcionFinalControllerIT {
                         .header("Authorization", "Bearer " + alumno.token()))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void preceptor_puedeListarPorAlumno_alumnoNoPuede() throws Exception {
+        String admin = tokenPara("30111222", "Admin1234");
+        String preceptor = tokenPara("30222333", "Preceptor1234");
+        AlumnoDeTest alumno = crearAlumnoDeTest(admin);
+
+        long materiaId = crearMateria(admin, "IFI-08");
+        fijarRegular(admin, alumno.id(), materiaId);
+        long mesa = crearMesa(admin, materiaId, LocalDate.now().plusDays(30), Turno.MANANA, 10);
+
+        mockMvc.perform(post("/api/v1/inscripciones-final")
+                        .header("Authorization", "Bearer " + alumno.token())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"mesaId\":" + mesa + "}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/inscripciones-final/alumno/" + alumno.id())
+                        .header("Authorization", "Bearer " + preceptor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].materiaNombre").exists());
+
+        mockMvc.perform(get("/api/v1/inscripciones-final/alumno/" + alumno.id())
+                        .header("Authorization", "Bearer " + alumno.token()))
+                .andExpect(status().isForbidden());
+    }
 }

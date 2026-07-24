@@ -30,4 +30,7 @@ public interface InscripcionCursadaRepository extends JpaRepository<InscripcionC
 
     @Query("SELECT i FROM InscripcionCursada i WHERE i.id = :id AND i.alumno.usuarioId = :alumnoId")
     Optional<InscripcionCursada> findByIdAndAlumnoId(@Param("id") Long id, @Param("alumnoId") Long alumnoId);
+
+    @Query("SELECT i FROM InscripcionCursada i WHERE i.alumno.usuarioId = :alumnoId")
+    List<InscripcionCursada> findByAlumnoId(@Param("alumnoId") Long alumnoId);
 }

@@ -262,4 +262,30 @@ class InscripcionCursadaControllerIT {
                         .header("Authorization", "Bearer " + alumno.token()))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void preceptor_puedeListarPorAlumno_alumnoNoPuede() throws Exception {
+        String admin = tokenPara("30111222", "Admin1234");
+        String preceptor = tokenPara("30222333", "Preceptor1234");
+        AlumnoDeTest alumno = crearAlumnoDeTest(admin);
+
+        long materiaId = crearMateria(admin, "ICU-07");
+        long comision = crearComision(admin, materiaId, "A",
+                List.of(new HorarioRequest(3, LocalTime.of(18, 0), LocalTime.of(20, 0), "Aula 1")), 10);
+
+        mockMvc.perform(post("/api/v1/inscripciones-cursada")
+                        .header("Authorization", "Bearer " + alumno.token())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new InscripcionCursadaRequest(comision))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/inscripciones-cursada/alumno/" + alumno.id())
+                        .header("Authorization", "Bearer " + preceptor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].comisionNombre").exists());
+
+        mockMvc.perform(get("/api/v1/inscripciones-cursada/alumno/" + alumno.id())
+                        .header("Authorization", "Bearer " + alumno.token()))
+                .andExpect(status().isForbidden());
+    }
 }

@@ -143,6 +143,15 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
                 .toList();
     }
 
+    @Override
+    @PreAuthorize("hasRole('PRECEPTOR') or hasRole('ADMINISTRADOR')")
+    @Transactional(readOnly = true)
+    public List<InscripcionFinalResponse> listarPorAlumno(Long alumnoId) {
+        return inscripcionFinalRepository.findByAlumnoId(alumnoId).stream()
+                .map(inscripcionFinalMapper::toResponse)
+                .toList();
+    }
+
     private void crearIntentoFinal(Alumno alumno, MesaExamen mesa, InscripcionFinal inscripcion) {
         long intentosPrevios = intentoFinalRepository.contarActivosPorAlumnoYMateria(
                 alumno.getUsuarioId(), mesa.getMateria().getId(), ACTIVOS);

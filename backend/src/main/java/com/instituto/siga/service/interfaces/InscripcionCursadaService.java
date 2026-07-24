@@ -16,4 +16,6 @@ public interface InscripcionCursadaService {
     List<InscripcionCursadaResponse> listarPropias(Long alumnoId);
 
     List<InscripcionCursadaResponse> listarPorComision(Long comisionId);
+
+    List<InscripcionCursadaResponse> listarPorAlumno(Long alumnoId);
 }

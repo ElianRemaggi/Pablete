@@ -15,7 +15,9 @@ Backend en desarrollo activo sobre Spring Boot. Implementado y con tests (unitar
 - Configuración institucional (ventanas de inscripción, límite de intentos)
 - Auditoría de toda acción sensible (evento genérico + listener asíncrono)
 
-Con esto el backend cubre el MVP completo ("Must have"/"Should have") de `docs/10-roadmap-entregables.md` §2. Pendiente: frontend, despliegue, rate limiting y reportes con gráficos. Ver el detalle etapa por etapa en [`docs/10-roadmap-entregables.md`](docs/10-roadmap-entregables.md).
+Con esto el backend cubre el MVP completo ("Must have"/"Should have") de `docs/10-roadmap-entregables.md` §2.
+
+El frontend (`frontend/`, Vite + React + TypeScript + MUI) también está implementado: login, layouts por rol, y todos los módulos CRUD/de inscripción conectados a la API real (ABM de Administrador, búsqueda/ficha/exportaciones de Preceptor, dashboard/historial/inscripciones/certificados de Alumno). Pendiente: despliegue, rate limiting y reportes con gráficos más allá de ocupación de cupos. Ver el detalle etapa por etapa en [`docs/10-roadmap-entregables.md`](docs/10-roadmap-entregables.md).
 
 ## Documentación
 
@@ -45,6 +47,24 @@ Documentación interactiva de la API en `/swagger-ui.html`.
 
 Para producción (perfil `prod`) usa MySQL 8 + migraciones Flyway; ver `backend/src/main/resources/application-prod.yml`.
 
+## Frontend — cómo correrlo
+
+Requiere Node 18+.
+
+```bash
+cd frontend
+npm install
+npm run dev   # sirve en http://localhost:5173 por defecto
+```
+
+Si el backend no corre en `localhost:8080`, creá `frontend/.env.development.local` (gitignored) con:
+
+```
+VITE_API_BASE_URL=http://localhost:<puerto>/api/v1
+```
+
 ## Stack
 
-Java 17, Spring Boot 3, Spring Security 6 (JWT), Spring Data JPA, MapStruct, Maven, H2 (dev) / MySQL 8 (prod) + Flyway, OpenPDF (certificados), Apache POI (exportación Excel).
+**Backend**: Java 17, Spring Boot 3, Spring Security 6 (JWT), Spring Data JPA, MapStruct, Maven, H2 (dev) / MySQL 8 (prod) + Flyway, OpenPDF (certificados), Apache POI (exportación Excel).
+
+**Frontend**: Vite, React 19 + TypeScript, Material UI, React Router, React Hook Form + Zod, Axios, TanStack Query, recharts.

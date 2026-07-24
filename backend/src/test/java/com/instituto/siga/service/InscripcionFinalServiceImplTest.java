@@ -155,6 +155,20 @@ class InscripcionFinalServiceImplTest {
     }
 
     @Test
+    void listarPorAlumno_delegaEnElRepositorioYMapeaCadaResultado() {
+        InscripcionFinal propia = InscripcionFinal.builder().id(5L).alumno(alumno).mesa(mesa)
+                .estado(EstadoInscripcion.BAJA).build();
+        when(inscripcionFinalRepository.findByAlumnoId(1L)).thenReturn(List.of(propia));
+        when(inscripcionFinalMapper.toResponse(propia)).thenReturn(
+                new InscripcionFinalResponse(5L, "Materia", LocalDate.now().plusDays(30), "MANANA", "BAJA"));
+
+        List<InscripcionFinalResponse> resultado = service.listarPorAlumno(1L);
+
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).estado()).isEqualTo("BAJA");
+    }
+
+    @Test
     void darDeBaja_marcaEstadoBajaYBorraIntento() {
         InscripcionFinal propia = InscripcionFinal.builder().id(5L).alumno(alumno).mesa(mesa)
                 .estado(EstadoInscripcion.INSCRIPTO).build();

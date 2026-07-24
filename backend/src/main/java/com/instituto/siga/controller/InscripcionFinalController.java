@@ -53,4 +53,9 @@ public class InscripcionFinalController {
     public ResponseEntity<List<InscripcionFinalResponse>> listarPorMesa(@PathVariable Long mesaId) {
         return ResponseEntity.ok(inscripcionFinalService.listarPorMesa(mesaId));
     }
+
+    @GetMapping("/alumno/{alumnoId}")
+    public ResponseEntity<List<InscripcionFinalResponse>> listarPorAlumno(@PathVariable Long alumnoId) {
+        return ResponseEntity.ok(inscripcionFinalService.listarPorAlumno(alumnoId));
+    }
 }

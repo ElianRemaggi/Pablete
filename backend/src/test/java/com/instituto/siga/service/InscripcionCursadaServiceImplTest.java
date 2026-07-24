@@ -160,6 +160,20 @@ class InscripcionCursadaServiceImplTest {
     }
 
     @Test
+    void listarPorAlumno_delegaEnElRepositorioYMapeaCadaResultado() {
+        InscripcionCursada propia = InscripcionCursada.builder().id(5L).alumno(alumno).comision(comision)
+                .estado(EstadoInscripcion.BAJA).build();
+        when(inscripcionCursadaRepository.findByAlumnoId(1L)).thenReturn(List.of(propia));
+        when(inscripcionCursadaMapper.toResponse(propia)).thenReturn(
+                new InscripcionCursadaResponse(5L, "Materia", "A", "BAJA", LocalDateTime.now()));
+
+        List<InscripcionCursadaResponse> resultado = service.listarPorAlumno(1L);
+
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).estado()).isEqualTo("BAJA");
+    }
+
+    @Test
     void darDeBaja_marcaEstadoBajaYAudita() {
         InscripcionCursada propia = InscripcionCursada.builder().id(5L).alumno(alumno).comision(comision)
                 .estado(EstadoInscripcion.INSCRIPTO).build();

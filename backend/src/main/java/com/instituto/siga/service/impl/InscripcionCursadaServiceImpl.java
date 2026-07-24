@@ -140,6 +140,15 @@ public class InscripcionCursadaServiceImpl implements InscripcionCursadaService 
                 .toList();
     }
 
+    @Override
+    @PreAuthorize("hasRole('PRECEPTOR') or hasRole('ADMINISTRADOR')")
+    @Transactional(readOnly = true)
+    public List<InscripcionCursadaResponse> listarPorAlumno(Long alumnoId) {
+        return inscripcionCursadaRepository.findByAlumnoId(alumnoId).stream()
+                .map(inscripcionCursadaMapper::toResponse)
+                .toList();
+    }
+
     private Alumno buscarAlumnoOFallar(Long id) {
         return alumnoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Alumno no encontrado: " + id));
