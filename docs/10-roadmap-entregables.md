@@ -12,7 +12,7 @@
 | 5 | Backend — inscripciones, historial, certificados y exportación | Inscripción a cursadas y finales con el pipeline completo de validadores; alumnos + historial académico; generación de certificados PDF (OpenPDF); exportación a Excel (Apache POI) | **Completada** |
 | 6 | Frontend — dashboards | Login, dashboard Alumno, Preceptor, Administrador, todos los módulos CRUD y de inscripción conectados a la API real | **Completada**, salvo Horarios (sin recurso propio en el backend, se gestiona dentro de Comisiones) y dos pestañas de Ficha de Alumno que dependen de endpoints que el backend todavía no expone |
 | 7 | Endurecimiento | Rate limiting, revisión de seguridad final, tests E2E de flujos críticos, documentación Swagger final | Pendiente (hay tests unitarios/integración por módulo desde la Etapa 3, falta la pasada final) |
-| 8 | Despliegue | Contenerización final, pipeline CI/CD, entorno de staging, capacitación a personal administrativo, migración de datos históricos desde Excel | Pendiente |
+| 8 | Despliegue | Contenerización final, pipeline CI/CD, entorno de staging, capacitación a personal administrativo, migración de datos históricos desde Excel | **Contenerización completada** (`docker-compose.yml` + `Dockerfile` de backend y frontend, perfil `dev` con H2 para que cualquiera lo levante con un solo comando sin instalar nada). Pendiente: CI/CD, staging con base de datos persistente, capacitación, migración de datos |
 
 Ver `../CLAUDE.md` (raíz del repo) para el detalle técnico exacto de lo implementado: comandos de build/test, paquetes reales, y decisiones/desvíos puntuales respecto a este documento que surgieron al implementar (por ejemplo, `Comision`/`MesaExamen` no tienen baja lógica porque el DDL no les da columna `activa`).
 

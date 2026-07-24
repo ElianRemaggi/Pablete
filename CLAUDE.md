@@ -38,6 +38,10 @@ Prod profile (`application-prod.yml`) uses MySQL + Flyway (`src/main/resources/d
 
 Swagger UI: `/swagger-ui.html` (bearerAuth scheme). H2 console (dev only): `/h2-console`.
 
+## Docker
+
+`docker-compose.yml` (repo root) + `backend/Dockerfile` + `frontend/Dockerfile` run the whole system with `docker compose up --build` — zero local Java/Node/DB install required. Deliberately runs the backend on the **`dev` profile** (in-memory H2, demo users pre-seeded), not `prod`+MySQL: the goal is "anyone can try the full app in one command," and `prod` seeds no demo users at all (see above), which would leave a fresh container with no way to log in. `frontend/Dockerfile` bakes `VITE_API_BASE_URL` in at build time via `ARG`/`ENV` (ports: backend `8080`, frontend `8081` via nginx) — if those port mappings in `docker-compose.yml` change, `CORS_ALLOWED_ORIGINS` (backend env) and the `VITE_API_BASE_URL` build arg (frontend) both need to move with them, or login will fail with a CORS error. `frontend/nginx.conf` does the SPA fallback (`try_files ... /index.html`) React Router needs — without it, refreshing on any non-root route (e.g. `/alumno/dashboard`) 404s. A MySQL-backed `prod`-profile compose variant for a real staging environment is intentionally not built yet (docs/10 §1 Etapa 8 still lists CI/CD and staging as pending) — don't assume one exists.
+
 ## Ponytail plugin (installed, project scope)
 
 This project has the [ponytail](https://github.com/DietrichGebert/ponytail) plugin installed (`.claude/settings.json`, scope: project) — it pushes toward the smallest solution that works (YAGNI → reuse → stdlib → native → existing dependency → one-liner → minimum custom code). It is compatible with this repo's spec, not a relaxation of it:
