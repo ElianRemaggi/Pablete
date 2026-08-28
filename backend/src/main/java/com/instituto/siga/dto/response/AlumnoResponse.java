@@ -7,6 +7,7 @@ public record AlumnoResponse(
         String dni,
         String nombre,
         String apellido,
+        String email,
         String legajo,
         LocalDate fechaIngreso) {
 }

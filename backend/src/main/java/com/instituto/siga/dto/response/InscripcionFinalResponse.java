@@ -7,5 +7,8 @@ public record InscripcionFinalResponse(
         String materiaNombre,
         LocalDate fechaMesa,
         String turno,
-        String estado) {
+        String estado,
+        String profesor,
+        String carreraNombre,
+        String resultado) {
 }

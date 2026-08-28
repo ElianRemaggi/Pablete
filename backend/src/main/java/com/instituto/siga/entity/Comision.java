@@ -46,6 +46,9 @@ public class Comision {
     @Column(name = "cupo_maximo", nullable = false)
     private int cupoMaximo;
 
+    @Column(length = 150)
+    private String profesor;
+
     @Builder.Default
     @OneToMany(mappedBy = "comision", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Horario> horarios = new ArrayList<>();

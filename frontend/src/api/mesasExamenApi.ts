@@ -9,6 +9,7 @@ export interface MesaExamenResponse {
   fecha: string;
   turno: string;
   cupoMaximo: number;
+  profesor: string | null;
 }
 
 export interface MesaExamenRequest {
@@ -16,6 +17,7 @@ export interface MesaExamenRequest {
   fecha: string;
   turno: Turno;
   cupoMaximo: number;
+  profesor?: string;
 }
 
 export async function listarMesasExamen(): Promise<MesaExamenResponse[]> {

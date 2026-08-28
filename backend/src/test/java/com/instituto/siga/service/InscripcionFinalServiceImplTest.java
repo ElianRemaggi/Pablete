@@ -16,6 +16,7 @@ import com.instituto.siga.repository.AlumnoRepository;
 import com.instituto.siga.repository.InscripcionFinalRepository;
 import com.instituto.siga.repository.IntentoFinalRepository;
 import com.instituto.siga.repository.MesaExamenRepository;
+import com.instituto.siga.repository.PlanMateriaRepository;
 import com.instituto.siga.service.impl.InscripcionFinalServiceImpl;
 import com.instituto.siga.validation.ValidadorAntelacionMinima;
 import com.instituto.siga.validation.ValidadorInscripcionFinal;
@@ -53,6 +54,8 @@ class InscripcionFinalServiceImplTest {
     @Mock
     private MesaExamenRepository mesaExamenRepository;
     @Mock
+    private PlanMateriaRepository planMateriaRepository;
+    @Mock
     private InscripcionFinalMapper inscripcionFinalMapper;
     @Mock
     private AuditoriaPublisher auditoriaPublisher;
@@ -71,8 +74,8 @@ class InscripcionFinalServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new InscripcionFinalServiceImpl(inscripcionFinalRepository, intentoFinalRepository, alumnoRepository,
-                mesaExamenRepository, inscripcionFinalMapper, auditoriaPublisher, validadorAntelacionMinima,
-                List.of(otroValidador, validadorAntelacionMinima, validadorVentana));
+                mesaExamenRepository, planMateriaRepository, inscripcionFinalMapper, auditoriaPublisher,
+                validadorAntelacionMinima, List.of(otroValidador, validadorAntelacionMinima, validadorVentana));
 
         alumno = Alumno.builder().usuarioId(1L).build();
         mesa = MesaExamen.builder().id(1L).materia(Materia.builder().id(1L).nombre("Materia").build())
@@ -109,7 +112,7 @@ class InscripcionFinalServiceImplTest {
         when(inscripcionFinalRepository.existsByAlumnoIdAndMesaIdAndEstadoIn(any(), any(), any())).thenReturn(false);
         when(inscripcionFinalRepository.save(any(InscripcionFinal.class))).thenAnswer(inv -> inv.getArgument(0));
         when(inscripcionFinalMapper.toResponse(any(InscripcionFinal.class))).thenReturn(
-                new InscripcionFinalResponse(1L, "Materia", LocalDate.now().plusDays(30), "MANANA", "INSCRIPTO"));
+                new InscripcionFinalResponse(1L, "Materia", LocalDate.now().plusDays(30), "MANANA", "INSCRIPTO", null, null, null));
 
         InscripcionFinalResponse response = service.inscribir(1L, new InscripcionFinalRequest(1L));
 
@@ -145,7 +148,7 @@ class InscripcionFinalServiceImplTest {
         when(inscripcionFinalRepository.findByIdAndAlumnoId(5L, 1L)).thenReturn(Optional.of(propia));
         when(inscripcionFinalRepository.save(any(InscripcionFinal.class))).thenAnswer(inv -> inv.getArgument(0));
         when(inscripcionFinalMapper.toResponse(any(InscripcionFinal.class))).thenReturn(
-                new InscripcionFinalResponse(5L, "Materia", LocalDate.now().plusDays(30), "MANANA", "MODIFICADA"));
+                new InscripcionFinalResponse(5L, "Materia", LocalDate.now().plusDays(30), "MANANA", "MODIFICADA", null, null, null));
         when(intentoFinalRepository.findByInscripcionFinalId(5L)).thenReturn(List.of());
 
         service.modificar(1L, 5L, new InscripcionFinalRequest(1L));
@@ -160,7 +163,7 @@ class InscripcionFinalServiceImplTest {
                 .estado(EstadoInscripcion.BAJA).build();
         when(inscripcionFinalRepository.findByAlumnoId(1L)).thenReturn(List.of(propia));
         when(inscripcionFinalMapper.toResponse(propia)).thenReturn(
-                new InscripcionFinalResponse(5L, "Materia", LocalDate.now().plusDays(30), "MANANA", "BAJA"));
+                new InscripcionFinalResponse(5L, "Materia", LocalDate.now().plusDays(30), "MANANA", "BAJA", null, null, null));
 
         List<InscripcionFinalResponse> resultado = service.listarPorAlumno(1L);
 

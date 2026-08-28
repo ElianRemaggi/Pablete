@@ -70,6 +70,7 @@ public class MesaExamenServiceImpl implements MesaExamenService {
                 .fecha(request.fecha())
                 .turno(request.turno())
                 .cupoMaximo(request.cupoMaximo())
+                .profesor(request.profesor())
                 .build();
 
         MesaExamen guardada = mesaExamenRepository.save(mesa);
@@ -97,6 +98,7 @@ public class MesaExamenServiceImpl implements MesaExamenService {
         mesa.setFecha(request.fecha());
         mesa.setTurno(request.turno());
         mesa.setCupoMaximo(request.cupoMaximo());
+        mesa.setProfesor(request.profesor());
 
         MesaExamen guardada = mesaExamenRepository.save(mesa);
         auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "MESA_EXAMEN_ACTUALIZADA", "MesaExamen", guardada.getId(),

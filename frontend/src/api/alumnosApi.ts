@@ -5,6 +5,7 @@ export interface AlumnoResponse {
   dni: string;
   nombre: string;
   apellido: string;
+  email: string;
   legajo: string;
   fechaIngreso: string;
 }
@@ -40,6 +41,7 @@ export interface FiltrosBusquedaAlumno {
   legajo?: string;
   dni?: string;
   apellido?: string;
+  nombre?: string;
 }
 
 export async function buscarAlumnos(filtros: FiltrosBusquedaAlumno): Promise<AlumnoResponse[]> {
@@ -47,6 +49,7 @@ export async function buscarAlumnos(filtros: FiltrosBusquedaAlumno): Promise<Alu
   if (filtros.legajo) params.legajo = filtros.legajo;
   if (filtros.dni) params.dni = filtros.dni;
   if (filtros.apellido) params.apellido = filtros.apellido;
+  if (filtros.nombre) params.nombre = filtros.nombre;
 
   const { data } = await httpClient.get<AlumnoResponse[]>('/alumnos', { params });
   return data;

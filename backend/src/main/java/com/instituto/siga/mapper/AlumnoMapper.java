@@ -11,5 +11,6 @@ public interface AlumnoMapper {
     @Mapping(source = "usuario.dni", target = "dni")
     @Mapping(source = "usuario.nombre", target = "nombre")
     @Mapping(source = "usuario.apellido", target = "apellido")
+    @Mapping(source = "usuario.email", target = "email")
     AlumnoResponse toResponse(Alumno entity);
 }

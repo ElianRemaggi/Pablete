@@ -11,6 +11,9 @@ import com.instituto.siga.exception.ResourceNotFoundException;
 import com.instituto.siga.repository.AlumnoRepository;
 import com.instituto.siga.repository.CertificadoEmitidoRepository;
 import com.instituto.siga.repository.EstadoAcademicoMateriaRepository;
+import com.instituto.siga.repository.InscripcionCursadaRepository;
+import com.instituto.siga.repository.InscripcionFinalRepository;
+import com.instituto.siga.repository.PlanMateriaRepository;
 import com.instituto.siga.service.impl.CertificadoServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +43,12 @@ class CertificadoServiceImplTest {
     @Mock
     private CertificadoEmitidoRepository certificadoEmitidoRepository;
     @Mock
+    private InscripcionCursadaRepository inscripcionCursadaRepository;
+    @Mock
+    private InscripcionFinalRepository inscripcionFinalRepository;
+    @Mock
+    private PlanMateriaRepository planMateriaRepository;
+    @Mock
     private CertificadoFactory certificadoFactory;
     @Mock
     private AuditoriaPublisher auditoriaPublisher;
@@ -49,7 +58,8 @@ class CertificadoServiceImplTest {
     @BeforeEach
     void setUp() {
         certificadoService = new CertificadoServiceImpl(alumnoRepository, estadoAcademicoMateriaRepository,
-                certificadoEmitidoRepository, certificadoFactory, auditoriaPublisher);
+                certificadoEmitidoRepository, inscripcionCursadaRepository, inscripcionFinalRepository,
+                planMateriaRepository, certificadoFactory, auditoriaPublisher);
     }
 
     private Alumno alumnoDeEjemplo() {

@@ -1,6 +1,6 @@
 # SIGA — Sistema Web de Gestión Académica
 
-Reemplaza el proceso manual de inscripciones por Google Forms + Excel de un instituto educativo: autenticación por roles, ABM de oferta académica, inscripción a cursadas/finales con validación automática de reglas de negocio, y auditoría completa de acciones sensibles.
+Reemplaza el proceso manual de inscripciones por Google Forms + Excel del Instituto Superior de Estudios Técnicos (ISET): autenticación por roles, ABM de oferta académica, inscripción a cursadas/finales con validación automática de reglas de negocio, calendario académico personalizado por rol, comprobantes PDF institucionales, y auditoría completa de acciones sensibles.
 
 ## 🚀 Probarlo rápido con Docker (recomendado)
 
@@ -32,7 +32,7 @@ Andá a **http://localhost:8081** en el navegador. Iniciá sesión con alguno de
 | `30222333` | `Preceptor1234` | PRECEPTOR |
 | `30333444` | `Alumno1234` | ALUMNO |
 
-Eso es todo. Los datos se guardan en memoria mientras el contenedor está corriendo — si lo apagás con `docker compose down` y lo volvés a levantar, arranca de nuevo desde cero con estos mismos 3 usuarios (es intencional: este modo es para probar el sistema, no para guardar datos reales de forma permanente).
+Eso es todo. Los datos se guardan en memoria mientras el contenedor está corriendo — si lo apagás con `docker compose down` y lo volvés a levantar, arranca de nuevo desde cero con estos mismos 3 usuarios (es intencional: este modo es para probar el sistema, no para guardar datos reales de forma permanente). Además de los usuarios, se precarga una carrera de ejemplo (Tecnicatura en Desarrollo de Aplicaciones) con materias, comisiones, horarios, una mesa de examen y un par de inscripciones para `alumno1`, así el calendario y los comprobantes de inscripción tienen algo real para mostrar apenas entrás.
 
 ### Si algo no funciona
 
@@ -56,6 +56,10 @@ Backend y frontend completos, cubriendo el MVP entero ("Must have"/"Should have"
 - Inscripción a cursadas y a finales con el pipeline completo de validaciones de negocio
 - Historial académico, certificados PDF, exportación a Excel, configuración institucional, auditoría
 - Frontend (React + MUI) con dashboards y ABMs para los 3 roles (Alumno, Preceptor, Administrador), incluyendo reportes con gráficos
+- **Identidad visual institucional**: paleta basada en `#05acec` y logo del ISET integrados en login, dashboards y comprobantes PDF
+- **Calendario académico** por rol (personalizado para el alumno, institucional para preceptor/administrador), con leyenda de colores por tipo de evento (cursada, final, inscripción, evento académico, fecha límite) y eventos institucionales administrables por el admin
+- **Comprobantes PDF de inscripción** a cursada y a final, con diseño institucional, número de comprobante y fecha de inscripción diferenciada de la fecha de generación
+- **Buscador y ficha de alumno** también disponibles para el rol Administrador (antes solo Preceptor), con búsqueda por nombre/apellido/DNI/legajo insensible a mayúsculas y espacios
 
 Pendiente: CI/CD, entorno de staging con base de datos persistente, rate limiting, y notificaciones por email (backlog de baja prioridad). Ver detalle etapa por etapa en `docs/10-roadmap-entregables.md`.
 

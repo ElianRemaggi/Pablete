@@ -12,5 +12,6 @@ public record ComisionRequest(
         @NotBlank String nombre,
         @NotBlank String periodoLectivo,
         @Min(1) int cupoMaximo,
+        String profesor,
         @Valid List<HorarioRequest> horarios) {
 }

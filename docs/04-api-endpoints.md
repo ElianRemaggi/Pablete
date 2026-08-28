@@ -116,6 +116,10 @@ Convención general: prefijo `/api/v1`. Respuestas de error usan `ErrorResponse`
 | GET | `/certificados/analitico-parcial` | ALUMNO | Genera y descarga PDF de analítico parcial |
 | GET | `/certificados/alumno/{id}/alumno-regular` | PRECEPTOR, ADMIN | Emite certificado para un alumno puntual |
 | GET | `/certificados/historial` | ALUMNO | Historial de certificados emitidos propios |
+| GET | `/certificados/inscripcion-cursada/{id}` | ALUMNO | Comprobante PDF de una inscripción a cursada propia (agregado tras la actualización de identidad visual/calendario — no estaba en el diseño original) |
+| GET | `/certificados/inscripcion-final/{id}` | ALUMNO | Comprobante PDF de una inscripción a final propia |
+| GET | `/certificados/alumno/{alumnoId}/inscripcion-cursada/{id}` | PRECEPTOR, ADMIN | Comprobante de una inscripción a cursada de un alumno puntual |
+| GET | `/certificados/alumno/{alumnoId}/inscripcion-final/{id}` | PRECEPTOR, ADMIN | Comprobante de una inscripción a final de un alumno puntual |
 
 ## 12. Exportación — `/api/v1/exportaciones`
 
@@ -145,7 +149,23 @@ Convención general: prefijo `/api/v1`. Respuestas de error usan `ErrorResponse`
 |---|---|---|---|
 | GET | `/reportes/tasa-aprobacion-por-materia` | PRECEPTOR, ADMIN | Aprobadas vs. total de `estado_academico_materia` por materia (agregado tras implementar el frontend — no estaba en el diseño original; ocupación de cupos e inscriptos por comisión, mencionados en `docs/05` §6, se resuelven en el frontend combinando `GET /comisiones` con `GET /inscripciones-cursada/comision/{id}`, sin necesitar un endpoint propio) |
 
-## 16. Convenciones de error
+## 16. Calendario y Eventos Académicos — `/api/v1/calendario`, `/api/v1/eventos-academicos`
+
+Agregado en la actualización de identidad visual/calendario (no estaba en el diseño original). Los eventos de tipo cursada, final e inscripción **no se persisten en una tabla propia**: se derivan en tiempo real de `horario`+`comision` (expandiendo la recurrencia semanal a fechas concretas), `mesa_examen`, `inscripcion_cursada`/`inscripcion_final` y `configuracion_institucional`. Solo `evento_academico` (eventos institucionales sueltos y fechas límite cargadas a mano) es una tabla nueva.
+
+| Método | Endpoint | Rol | Descripción |
+|---|---|---|---|
+| GET | `/calendario/me?desde=&hasta=` | ALUMNO | Calendario propio: sus cursadas, finales, inscripciones y fechas límite en el rango |
+| GET | `/calendario/alumno/{alumnoId}?desde=&hasta=` | PRECEPTOR, ADMIN | Calendario de un alumno puntual (usado por la ficha de alumno) |
+| GET | `/calendario/institucional?desde=&hasta=` | PRECEPTOR, ADMIN | Todas las cursadas, mesas, ventanas y eventos académicos del rango |
+| GET | `/eventos-academicos` | Todos autenticados | Listado de eventos institucionales cargados a mano |
+| POST | `/eventos-academicos` | ADMIN | Alta de evento académico o fecha límite |
+| PUT | `/eventos-academicos/{id}` | ADMIN | Modificación |
+| DELETE | `/eventos-academicos/{id}` | ADMIN | Baja (física — no hay noción de "activo" para estos eventos) |
+
+`desde`/`hasta` son fechas (`yyyy-MM-dd`); si se omiten, el servicio usa el mes calendario actual por defecto.
+
+## 17. Convenciones de error
 
 | Código HTTP | Uso |
 |---|---|
@@ -166,10 +186,10 @@ Todas las respuestas de error siguen el contrato:
 }
 ```
 
-## 16. Documentación interactiva
+## 18. Documentación interactiva
 
 Todos los endpoints quedan documentados automáticamente vía **springdoc-openapi**, expuestos en `/swagger-ui.html` y `/v3/api-docs`, con esquemas de seguridad `bearerAuth` (JWT) declarados globalmente.
 
-## 17. Siguiente etapa
+## 19. Siguiente etapa
 
 Con el contrato de API definido, el siguiente documento (`05-modulos-frontend.md`) detalla cómo el frontend en React consume estos endpoints, organizado por módulo y dashboard según el rol del usuario.

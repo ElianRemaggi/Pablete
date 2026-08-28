@@ -8,5 +8,6 @@ public record MesaExamenResponse(
         String materiaNombre,
         LocalDate fecha,
         String turno,
-        int cupoMaximo) {
+        int cupoMaximo,
+        String profesor) {
 }

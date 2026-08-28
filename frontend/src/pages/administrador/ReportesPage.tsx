@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Alert, CircularProgress, Stack, Typography } from '@mui/material';
+import { Alert, CircularProgress, Stack, Typography, useTheme } from '@mui/material';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { listarComisiones, contarInscriptosActivos } from '../../api/comisionesApi';
 import { obtenerTasaAprobacionPorMateria } from '../../api/reportesApi';
@@ -23,6 +23,7 @@ async function cargarTasaAprobacion() {
 }
 
 export function ReportesPage() {
+  const theme = useTheme();
   const ocupacionQuery = useQuery({ queryKey: ['reportes', 'ocupacion'], queryFn: cargarOcupacion });
   const aprobacionQuery = useQuery({ queryKey: ['reportes', 'aprobacion'], queryFn: cargarTasaAprobacion });
 
@@ -44,8 +45,8 @@ export function ReportesPage() {
             <YAxis allowDecimals={false} />
             <Tooltip />
             <Legend />
-            <Bar dataKey="cupoMaximo" name="Cupo máximo" fill="#0B3D91" />
-            <Bar dataKey="inscriptos" name="Inscriptos" fill="#F2A900" />
+            <Bar dataKey="cupoMaximo" name="Cupo máximo" fill={theme.palette.primary.main} />
+            <Bar dataKey="inscriptos" name="Inscriptos" fill={theme.palette.secondary.main} />
           </BarChart>
         </ResponsiveContainer>
       )}
@@ -63,7 +64,7 @@ export function ReportesPage() {
             <XAxis dataKey="nombre" tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" height={80} />
             <YAxis unit="%" domain={[0, 100]} />
             <Tooltip formatter={(value) => `${value}%`} />
-            <Bar dataKey="tasaAprobacion" name="Tasa de aprobación" fill="#0B3D91" />
+            <Bar dataKey="tasaAprobacion" name="Tasa de aprobación" fill={theme.palette.primary.main} />
           </BarChart>
         </ResponsiveContainer>
       )}

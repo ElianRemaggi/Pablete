@@ -1,4 +1,5 @@
 import { httpClient } from './httpClient';
+import type { HorarioResponse } from './comisionesApi';
 
 export interface InscripcionCursadaResponse {
   id: number;
@@ -6,6 +7,9 @@ export interface InscripcionCursadaResponse {
   comisionNombre: string;
   estado: string;
   fechaInscripcion: string;
+  profesor: string | null;
+  carreraNombre: string | null;
+  horarios: HorarioResponse[];
 }
 
 export async function listarInscripcionesCursadaPropias(): Promise<InscripcionCursadaResponse[]> {

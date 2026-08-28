@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Chip, CircularProgress, Stack, Typography } from '@mui/material';
 import { DataTable, type DataTableColumn } from '../../components/DataTable';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { FileDownloadButton } from '../../components/FileDownloadButton';
 import { useSnackbar } from '../../components/SnackbarProvider';
 import { extraerMensajeError } from '../../utils/apiError';
 import { listarComisiones, type ComisionResponse } from '../../api/comisionesApi';
@@ -80,6 +81,18 @@ export function AlumnoInscripcionCursadaPage() {
       key: 'fecha',
       header: 'Fecha de inscripción',
       render: (i) => new Date(i.fechaInscripcion).toLocaleString('es-AR'),
+    },
+    {
+      key: 'comprobante',
+      header: 'Comprobante',
+      render: (i) => (
+        <FileDownloadButton
+          url={`/certificados/inscripcion-cursada/${i.id}`}
+          nombreArchivo={`comprobante-cursada-${i.id}.pdf`}
+          label="PDF"
+          size="small"
+        />
+      ),
     },
     {
       key: 'acciones',

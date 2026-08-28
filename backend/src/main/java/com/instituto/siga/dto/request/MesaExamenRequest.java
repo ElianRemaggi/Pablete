@@ -10,5 +10,6 @@ public record MesaExamenRequest(
         @NotNull Long materiaId,
         @NotNull LocalDate fecha,
         @NotNull Turno turno,
-        @Min(1) int cupoMaximo) {
+        @Min(1) int cupoMaximo,
+        String profesor) {
 }

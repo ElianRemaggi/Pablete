@@ -6,11 +6,17 @@ import com.instituto.siga.dto.response.CertificadoResponse;
 import com.instituto.siga.entity.Alumno;
 import com.instituto.siga.entity.CertificadoEmitido;
 import com.instituto.siga.entity.EstadoAcademicoMateria;
+import com.instituto.siga.entity.InscripcionCursada;
+import com.instituto.siga.entity.InscripcionFinal;
+import com.instituto.siga.entity.Materia;
 import com.instituto.siga.entity.TipoCertificado;
 import com.instituto.siga.exception.ResourceNotFoundException;
 import com.instituto.siga.repository.AlumnoRepository;
 import com.instituto.siga.repository.CertificadoEmitidoRepository;
 import com.instituto.siga.repository.EstadoAcademicoMateriaRepository;
+import com.instituto.siga.repository.InscripcionCursadaRepository;
+import com.instituto.siga.repository.InscripcionFinalRepository;
+import com.instituto.siga.repository.PlanMateriaRepository;
 import com.instituto.siga.security.SecurityUtils;
 import com.instituto.siga.service.interfaces.CertificadoService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +37,9 @@ public class CertificadoServiceImpl implements CertificadoService {
     private final AlumnoRepository alumnoRepository;
     private final EstadoAcademicoMateriaRepository estadoAcademicoMateriaRepository;
     private final CertificadoEmitidoRepository certificadoEmitidoRepository;
+    private final InscripcionCursadaRepository inscripcionCursadaRepository;
+    private final InscripcionFinalRepository inscripcionFinalRepository;
+    private final PlanMateriaRepository planMateriaRepository;
     private final CertificadoFactory certificadoFactory;
     private final AuditoriaPublisher auditoriaPublisher;
 
@@ -75,10 +84,80 @@ public class CertificadoServiceImpl implements CertificadoService {
                 .toList();
     }
 
+    @Override
+    @PreAuthorize("hasRole('ALUMNO')")
+    @Transactional
+    public byte[] generarComprobanteCursadaPropio(Long alumnoId, Long inscripcionId) {
+        InscripcionCursada inscripcion = inscripcionCursadaRepository.findByIdAndAlumnoId(inscripcionId, alumnoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada: " + inscripcionId));
+        return emitirComprobanteCursada(inscripcion);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ALUMNO')")
+    @Transactional
+    public byte[] generarComprobanteFinalPropio(Long alumnoId, Long inscripcionId) {
+        InscripcionFinal inscripcion = inscripcionFinalRepository.findByIdAndAlumnoId(inscripcionId, alumnoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada: " + inscripcionId));
+        return emitirComprobanteFinal(inscripcion);
+    }
+
+    @Override
+    @PreAuthorize("hasAnyRole('PRECEPTOR', 'ADMINISTRADOR')")
+    @Transactional
+    public byte[] generarComprobanteCursadaParaAlumno(Long alumnoId, Long inscripcionId) {
+        InscripcionCursada inscripcion = inscripcionCursadaRepository.findByIdAndAlumnoId(inscripcionId, alumnoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada: " + inscripcionId));
+        return emitirComprobanteCursada(inscripcion);
+    }
+
+    @Override
+    @PreAuthorize("hasAnyRole('PRECEPTOR', 'ADMINISTRADOR')")
+    @Transactional
+    public byte[] generarComprobanteFinalParaAlumno(Long alumnoId, Long inscripcionId) {
+        InscripcionFinal inscripcion = inscripcionFinalRepository.findByIdAndAlumnoId(inscripcionId, alumnoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada: " + inscripcionId));
+        return emitirComprobanteFinal(inscripcion);
+    }
+
+    private byte[] emitirComprobanteCursada(InscripcionCursada inscripcion) {
+        Alumno alumno = inscripcion.getAlumno();
+        Materia materia = inscripcion.getComision().getMateria();
+        String numero = "CUR-" + String.format("%06d", inscripcion.getId()) + "-" + inscripcion.getFechaInscripcion().getYear();
+
+        byte[] pdf = certificadoFactory.generarComprobanteCursada(alumno, numero, resolverCarrera(materia),
+                materia.getNombre(), inscripcion.getComision().getNombre(), inscripcion.getComision().getProfesor(),
+                inscripcion.getFechaInscripcion());
+
+        registrar(alumno, TipoCertificado.COMPROBANTE_CURSADA, pdf);
+        return pdf;
+    }
+
+    private byte[] emitirComprobanteFinal(InscripcionFinal inscripcion) {
+        Alumno alumno = inscripcion.getAlumno();
+        Materia materia = inscripcion.getMesa().getMateria();
+        String numero = "FIN-" + String.format("%06d", inscripcion.getId()) + "-" + inscripcion.getFechaInscripcion().getYear();
+
+        byte[] pdf = certificadoFactory.generarComprobanteFinal(alumno, numero, resolverCarrera(materia),
+                materia.getNombre(), inscripcion.getMesa().getFecha(), inscripcion.getMesa().getTurno().name(),
+                inscripcion.getMesa().getProfesor(), inscripcion.getFechaInscripcion());
+
+        registrar(alumno, TipoCertificado.COMPROBANTE_FINAL, pdf);
+        return pdf;
+    }
+
+    private String resolverCarrera(Materia materia) {
+        return planMateriaRepository.buscarCarreraVigentePorMateria(materia.getId()).orElse(null);
+    }
+
+    /** Los comprobantes de inscripcion no tienen una URL fija: dependen del id de la inscripcion,
+     * que no se guarda en CertificadoEmitido (solo alumno+tipo+fecha+hash, como todo lo demas). */
     private String urlPara(TipoCertificado tipo) {
-        return tipo == TipoCertificado.ALUMNO_REGULAR
-                ? "/api/v1/certificados/alumno-regular"
-                : "/api/v1/certificados/analitico-parcial";
+        return switch (tipo) {
+            case ALUMNO_REGULAR -> "/api/v1/certificados/alumno-regular";
+            case ANALITICO_PARCIAL -> "/api/v1/certificados/analitico-parcial";
+            case COMPROBANTE_CURSADA, COMPROBANTE_FINAL -> null;
+        };
     }
 
     private void registrar(Alumno alumno, TipoCertificado tipo, byte[] pdf) {

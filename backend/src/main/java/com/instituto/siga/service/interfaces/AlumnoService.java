@@ -11,7 +11,7 @@ public interface AlumnoService {
 
     AlumnoResponse obtenerPorId(Long id);
 
-    List<AlumnoResponse> buscar(String legajo, String dni, String apellido);
+    List<AlumnoResponse> buscar(String legajo, String dni, String apellido, String nombre);
 
     List<HistorialAcademicoResponse> historialPropio(Long usuarioId);
 

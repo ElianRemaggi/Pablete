@@ -3,6 +3,9 @@ import { Alert, Button, Card, CardContent, CircularProgress, Grid, Stack, Typogr
 import { Link } from 'react-router-dom';
 import { obtenerHistorialPropio } from '../../api/alumnosApi';
 import { obtenerConfiguracion } from '../../api/configuracionApi';
+import { obtenerCalendarioPropio } from '../../api/calendarioApi';
+import { CalendarioConLeyenda } from '../../components/calendario/CalendarioConLeyenda';
+import { useMesCalendario } from '../../hooks/useMesCalendario';
 
 function formatearFecha(iso: string): string {
   return new Date(iso).toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' });
@@ -11,6 +14,11 @@ function formatearFecha(iso: string): string {
 export function AlumnoDashboardPage() {
   const historialQuery = useQuery({ queryKey: ['alumno', 'historial'], queryFn: obtenerHistorialPropio });
   const configQuery = useQuery({ queryKey: ['configuracion'], queryFn: obtenerConfiguracion });
+  const { mes, desde, hasta, cambiarMes } = useMesCalendario();
+  const calendarioQuery = useQuery({
+    queryKey: ['calendario', 'propio', desde.toISOString(), hasta.toISOString()],
+    queryFn: () => obtenerCalendarioPropio(desde, hasta),
+  });
 
   const resumen = { aprobadas: 0, regulares: 0, cursando: 0, libres: 0 };
   historialQuery.data?.forEach((item) => {
@@ -78,6 +86,15 @@ export function AlumnoDashboardPage() {
           Descargar certificado
         </Button>
       </Stack>
+
+      <Typography variant="h5">Mi calendario</Typography>
+      <CalendarioConLeyenda
+        mes={mes}
+        eventos={calendarioQuery.data}
+        isLoading={calendarioQuery.isLoading}
+        isError={calendarioQuery.isError}
+        onCambiarMes={cambiarMes}
+      />
     </Stack>
   );
 }

@@ -148,9 +148,23 @@ enum Turno { MANANA, TARDE, NOCHE }
 
 @Entity class CertificadoEmitido { Long id;
     @ManyToOne Alumno alumno;
-    @Enumerated(EnumType.STRING) TipoCertificado tipo; // ALUMNO_REGULAR, ANALITICO_PARCIAL
+    @Enumerated(EnumType.STRING) TipoCertificado tipo; // ALUMNO_REGULAR, ANALITICO_PARCIAL, COMPROBANTE_CURSADA, COMPROBANTE_FINAL
     LocalDateTime fechaEmision; String hashDocumento; }
 ```
+
+### EventoAcademico (calendario — actualización post-MVP)
+```java
+@Entity @Table(name = "evento_academico")
+public class EventoAcademico {
+    @Id @GeneratedValue Long id;
+    String titulo; String descripcion;
+    @Enumerated(EnumType.STRING) TipoEventoAcademico tipo; // EVENTO_ACADEMICO, FECHA_LIMITE
+    LocalDateTime fechaInicio; LocalDateTime fechaFin;
+    @ManyToOne Usuario creadoPor;
+    LocalDateTime fechaCreacion;
+}
+```
+Solo cubre eventos institucionales sueltos y fechas límite cargadas a mano por el administrador. Cursadas, finales e inscripciones **no** se duplican acá: `CalendarioService` los deriva en tiempo real de `horario`/`comision`, `mesa_examen`, `inscripcion_cursada`/`inscripcion_final` y `configuracion_institucional` (ver `04-api-endpoints.md` §16). `comision` y `mesa_examen` ganaron además una columna `profesor VARCHAR(150)` nullable (texto libre, no hay entidad `Profesor`).
 
 ### ConfiguracionInstitucional / Auditoria / RefreshToken
 ```java
@@ -199,7 +213,7 @@ record CorrelatividadRequest(@NotNull Long materiaId, @NotNull Long materiaReque
                               @NotNull TipoRequisito tipoRequisito) {}
 
 record ComisionRequest(@NotNull Long materiaId, @NotBlank String nombre,
-                        @NotBlank String periodoLectivo, @Min(1) int cupoMaximo,
+                        @NotBlank String periodoLectivo, @Min(1) int cupoMaximo, String profesor,
                         List<HorarioRequest> horarios) {}
 record HorarioRequest(@Min(1) @Max(7) int diaSemana, @NotNull LocalTime horaInicio,
                        @NotNull LocalTime horaFin, String aula) {}
@@ -209,12 +223,28 @@ record HorarioRequest(@Min(1) @Max(7) int diaSemana, @NotNull LocalTime horaInic
 ```java
 record InscripcionCursadaRequest(@NotNull Long comisionId) {}
 record InscripcionCursadaResponse(Long id, String materiaNombre, String comisionNombre,
-                                   String estado, LocalDateTime fechaInscripcion) {}
+                                   String estado, LocalDateTime fechaInscripcion,
+                                   String profesor, String carreraNombre, List<HorarioResponse> horarios) {}
 
 record InscripcionFinalRequest(@NotNull Long mesaId) {}
-record InscripcionFinalResponse(Long id, String materiaNombre, LocalDate fechaMesa,
-                                 String turno, String estado) {}
+record InscripcionFinalResponse(Long id, String materiaNombre, LocalDate fechaMesa, String turno,
+                                 String estado, String profesor, String carreraNombre, String resultado) {}
 ```
+`carreraNombre` se resuelve por `Materia → PlanMateria → PlanEstudio → Carrera` (preferido el plan vigente) — `Alumno` no tiene una carrera propia mapeada en JPA. `resultado` viene de `IntentoFinal.resultado` (no de la inscripción), buscado por `inscripcionFinalId`.
+
+### Calendario (actualización post-MVP, `/api/v1/calendario`)
+```java
+record EventoCalendarioResponse(String id, String titulo, String detalle, LocalDateTime inicio,
+                                 LocalDateTime fin, TipoEventoCalendario tipo, String ubicacion) {}
+// TipoEventoCalendario: CURSADA, FINAL, INSCRIPCION, EVENTO_ACADEMICO, FECHA_LIMITE
+
+record EventoAcademicoRequest(@NotBlank String titulo, String descripcion,
+                               @NotNull TipoEventoAcademico tipo, @NotNull LocalDateTime fechaInicio,
+                               LocalDateTime fechaFin) {}
+record EventoAcademicoResponse(Long id, String titulo, String descripcion, String tipo,
+                                LocalDateTime fechaInicio, LocalDateTime fechaFin) {}
+```
+`EventoCalendarioResponse.id` es `String` (no un id de fila): los eventos derivados llevan ids sintéticos (`"horario-12-2026-04-06"`, `"mesa-3"`) porque no existen como filas propias.
 
 ### Historial académico / Certificados
 ```java

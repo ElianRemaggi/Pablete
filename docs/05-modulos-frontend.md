@@ -9,6 +9,7 @@
 /alumno                          → layout con Navbar + Sidebar (rol ALUMNO)
   /alumno/dashboard
   /alumno/perfil
+  /alumno/calendario
   /alumno/historial-academico
   /alumno/inscripcion-cursada
   /alumno/inscripcion-final
@@ -18,11 +19,15 @@
   /preceptor/dashboard
   /preceptor/busqueda-alumnos
   /preceptor/alumno/:id
+  /preceptor/calendario
   /preceptor/exportaciones
 
 /administrador                   → layout (rol ADMINISTRADOR)
   /administrador/dashboard
   /administrador/usuarios
+  /administrador/busqueda-alumnos
+  /administrador/alumno/:id
+  /administrador/calendario
   /administrador/carreras
   /administrador/planes-estudio
   /administrador/materias
@@ -116,17 +121,21 @@ Cada submódulo sigue el mismo patrón CRUD: tabla con búsqueda/filtros + botó
 
 ## 9. Tema institucional (Material UI)
 
+Actualizado en la actualización de identidad visual (`Prompt para actualizar SIGA.pdf` §1) al color institucional del ISET `#05acec`, reemplazando la paleta azul/dorado original:
+
 ```ts
 export const theme = createTheme({
   palette: {
-    primary: { main: '#0B3D91' },     // azul institucional
-    secondary: { main: '#F2A900' },   // dorado/acento
-    background: { default: '#F5F6F8' }
+    primary: { main: '#05acec', light: '#5fd0ff', dark: '#0378a6', contrastText: '#ffffff' },
+    secondary: { main: '#0f3b5c' },   // azul marino del logo, para contraste
+    background: { default: '#f4f9fc' }
   },
   typography: { fontFamily: 'Inter, Roboto, sans-serif' },
   shape: { borderRadius: 8 }
 });
 ```
+
+Ver `frontend/src/theme.ts` (fuente de verdad real) para los `components` overrides de `MuiAppBar`/`MuiListItemButton`/`MuiCard`. Los colores del calendario (cursada, final, inscripción, evento académico, fecha límite) son deliberadamente distintos de `#05acec` — ver `frontend/src/components/calendario/coloresCalendario.ts` — para no confundirse con la identidad institucional.
 
 ## 10. Responsive
 

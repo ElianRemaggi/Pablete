@@ -67,7 +67,7 @@ class InscripcionFinalControllerIT {
         String body = mockMvc.perform(post("/api/v1/mesas-examen")
                         .header("Authorization", "Bearer " + admin)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new MesaExamenRequest(materiaId, fecha, turno, cupo))))
+                        .content(objectMapper.writeValueAsString(new MesaExamenRequest(materiaId, fecha, turno, cupo, null))))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         return objectMapper.readTree(body).get("id").asLong();

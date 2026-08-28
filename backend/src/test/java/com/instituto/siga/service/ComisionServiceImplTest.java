@@ -59,13 +59,13 @@ class ComisionServiceImplTest {
         });
         lenient().when(comisionRepository.save(any(Comision.class))).thenAnswer(inv -> inv.getArgument(0));
         lenient().when(comisionMapper.toResponse(any(Comision.class)))
-                .thenReturn(new ComisionResponse(1L, 1L, "Programación I", "A", "2026-1C", 40, List.of()));
+                .thenReturn(new ComisionResponse(1L, 1L, "Programación I", "A", "2026-1C", 40, null, List.of()));
     }
 
     @Test
     void crear_conComisionDuplicada_lanzaConflictException() {
         when(comisionRepository.existsByMateriaIdAndNombreAndPeriodoLectivo(1L, "A", "2026-1C")).thenReturn(true);
-        ComisionRequest request = new ComisionRequest(1L, "A", "2026-1C", 40, List.of());
+        ComisionRequest request = new ComisionRequest(1L, "A", "2026-1C", 40, null, List.of());
 
         assertThatThrownBy(() -> comisionService.crear(request))
                 .isInstanceOf(ConflictException.class)
@@ -75,7 +75,7 @@ class ComisionServiceImplTest {
     @Test
     void crear_conHorarioInvalido_lanzaBusinessException() {
         HorarioRequest horarioInvalido = new HorarioRequest(1, LocalTime.of(20, 0), LocalTime.of(18, 0), "Aula 1");
-        ComisionRequest request = new ComisionRequest(1L, "A", "2026-1C", 40, List.of(horarioInvalido));
+        ComisionRequest request = new ComisionRequest(1L, "A", "2026-1C", 40, null, List.of(horarioInvalido));
 
         assertThatThrownBy(() -> comisionService.crear(request))
                 .isInstanceOf(BusinessException.class)
@@ -86,7 +86,7 @@ class ComisionServiceImplTest {
     void crear_conHorariosSuperpuestosEntreSi_lanzaBusinessException() {
         HorarioRequest h1 = new HorarioRequest(1, LocalTime.of(18, 0), LocalTime.of(22, 0), "Aula 1");
         HorarioRequest h2 = new HorarioRequest(1, LocalTime.of(19, 0), LocalTime.of(21, 0), "Aula 2");
-        ComisionRequest request = new ComisionRequest(1L, "A", "2026-1C", 40, List.of(h1, h2));
+        ComisionRequest request = new ComisionRequest(1L, "A", "2026-1C", 40, null, List.of(h1, h2));
 
         assertThatThrownBy(() -> comisionService.crear(request))
                 .isInstanceOf(BusinessException.class)
@@ -97,7 +97,7 @@ class ComisionServiceImplTest {
     void crear_conHorariosValidosSinSuperposicion_persisteComision() {
         HorarioRequest h1 = new HorarioRequest(1, LocalTime.of(18, 0), LocalTime.of(22, 0), "Aula 1");
         HorarioRequest h2 = new HorarioRequest(3, LocalTime.of(18, 0), LocalTime.of(22, 0), "Aula 1");
-        ComisionRequest request = new ComisionRequest(1L, "A", "2026-1C", 40, List.of(h1, h2));
+        ComisionRequest request = new ComisionRequest(1L, "A", "2026-1C", 40, null, List.of(h1, h2));
 
         comisionService.crear(request);
         // No exception -> valido.

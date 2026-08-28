@@ -81,7 +81,7 @@ public class ExportacionServiceImpl implements ExportacionService {
     public byte[] exportarAlumnos(String legajo, String dni, String apellido) {
         ExcelReportBuilder reporte = new ExcelReportBuilder("Alumnos")
                 .encabezado("Legajo", "DNI", "Nombre", "Apellido", "Fecha Ingreso");
-        for (Alumno alumno : alumnoRepository.buscar(legajo, dni, apellido)) {
+        for (Alumno alumno : alumnoRepository.buscar(legajo, dni, apellido, null)) {
             reporte.fila(alumno.getLegajo(), alumno.getUsuario().getDni(), alumno.getUsuario().getNombre(),
                     alumno.getUsuario().getApellido(), alumno.getFechaIngreso().toString());
         }

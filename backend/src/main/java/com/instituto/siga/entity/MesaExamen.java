@@ -45,4 +45,7 @@ public class MesaExamen {
 
     @Column(name = "cupo_maximo", nullable = false)
     private int cupoMaximo;
+
+    @Column(length = 150)
+    private String profesor;
 }

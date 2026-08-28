@@ -49,7 +49,7 @@ class MesaExamenServiceImplTest {
 
     @Test
     void crear_conFechaPasada_lanzaBusinessException() {
-        MesaExamenRequest request = new MesaExamenRequest(1L, LocalDate.now().minusDays(1), Turno.MANANA, 30);
+        MesaExamenRequest request = new MesaExamenRequest(1L, LocalDate.now().minusDays(1), Turno.MANANA, 30, null);
 
         assertThatThrownBy(() -> mesaExamenService.crear(request))
                 .isInstanceOf(BusinessException.class)
@@ -60,7 +60,7 @@ class MesaExamenServiceImplTest {
     void crear_conMesaYaExistente_lanzaConflictException() {
         LocalDate fecha = LocalDate.now().plusDays(30);
         when(mesaExamenRepository.existsByMateriaIdAndFechaAndTurno(1L, fecha, Turno.MANANA)).thenReturn(true);
-        MesaExamenRequest request = new MesaExamenRequest(1L, fecha, Turno.MANANA, 30);
+        MesaExamenRequest request = new MesaExamenRequest(1L, fecha, Turno.MANANA, 30, null);
 
         assertThatThrownBy(() -> mesaExamenService.crear(request))
                 .isInstanceOf(ConflictException.class)
@@ -72,9 +72,9 @@ class MesaExamenServiceImplTest {
         LocalDate fecha = LocalDate.now().plusDays(30);
         when(mesaExamenRepository.save(any(MesaExamen.class))).thenAnswer(inv -> inv.getArgument(0));
         when(mesaExamenMapper.toResponse(any(MesaExamen.class)))
-                .thenReturn(new MesaExamenResponse(1L, 1L, "Programación I", fecha, "MANANA", 30));
+                .thenReturn(new MesaExamenResponse(1L, 1L, "Programación I", fecha, "MANANA", 30, null));
 
-        MesaExamenResponse response = mesaExamenService.crear(new MesaExamenRequest(1L, fecha, Turno.MANANA, 30));
+        MesaExamenResponse response = mesaExamenService.crear(new MesaExamenRequest(1L, fecha, Turno.MANANA, 30, null));
 
         org.assertj.core.api.Assertions.assertThat(response.turno()).isEqualTo("MANANA");
     }

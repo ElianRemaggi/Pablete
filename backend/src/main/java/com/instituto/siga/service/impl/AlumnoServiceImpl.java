@@ -43,8 +43,8 @@ public class AlumnoServiceImpl implements AlumnoService {
     @Override
     @PreAuthorize("hasAnyRole('PRECEPTOR', 'ADMINISTRADOR')")
     @Transactional(readOnly = true)
-    public List<AlumnoResponse> buscar(String legajo, String dni, String apellido) {
-        return alumnoRepository.buscar(legajo, dni, apellido).stream().map(alumnoMapper::toResponse).toList();
+    public List<AlumnoResponse> buscar(String legajo, String dni, String apellido, String nombre) {
+        return alumnoRepository.buscar(legajo, dni, apellido, nombre).stream().map(alumnoMapper::toResponse).toList();
     }
 
     @Override

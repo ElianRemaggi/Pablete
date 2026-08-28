@@ -15,6 +15,7 @@ import com.instituto.siga.repository.AlumnoRepository;
 import com.instituto.siga.repository.InscripcionFinalRepository;
 import com.instituto.siga.repository.IntentoFinalRepository;
 import com.instituto.siga.repository.MesaExamenRepository;
+import com.instituto.siga.repository.PlanMateriaRepository;
 import com.instituto.siga.service.interfaces.InscripcionFinalService;
 import com.instituto.siga.validation.ValidadorAntelacionMinima;
 import com.instituto.siga.validation.ValidadorInscripcionFinal;
@@ -39,6 +40,7 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
     private final IntentoFinalRepository intentoFinalRepository;
     private final AlumnoRepository alumnoRepository;
     private final MesaExamenRepository mesaExamenRepository;
+    private final PlanMateriaRepository planMateriaRepository;
     private final InscripcionFinalMapper inscripcionFinalMapper;
     private final AuditoriaPublisher auditoriaPublisher;
     private final ValidadorAntelacionMinima validadorAntelacionMinima;
@@ -72,7 +74,7 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
         auditoriaPublisher.publicar(alumnoId, "INSCRIPCION_FINAL_ALTA", "InscripcionFinal", guardada.getId(),
                 Map.of("mesaId", mesa.getId(), "materiaId", mesa.getMateria().getId()));
 
-        return inscripcionFinalMapper.toResponse(guardada);
+        return enriquecer(guardada);
     }
 
     @Override
@@ -105,7 +107,7 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
         auditoriaPublisher.publicar(alumnoId, "INSCRIPCION_FINAL_MODIFICADA", "InscripcionFinal", guardada.getId(),
                 Map.of("mesaId", nuevaMesa.getId(), "materiaId", nuevaMesa.getMateria().getId()));
 
-        return inscripcionFinalMapper.toResponse(guardada);
+        return enriquecer(guardada);
     }
 
     @Override
@@ -130,7 +132,7 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
     @Transactional(readOnly = true)
     public List<InscripcionFinalResponse> listarPropias(Long alumnoId) {
         return inscripcionFinalRepository.findByAlumnoIdAndEstadoIn(alumnoId, ACTIVOS).stream()
-                .map(inscripcionFinalMapper::toResponse)
+                .map(this::enriquecer)
                 .toList();
     }
 
@@ -139,7 +141,7 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
     @Transactional(readOnly = true)
     public List<InscripcionFinalResponse> listarPorMesa(Long mesaId) {
         return inscripcionFinalRepository.findByMesaId(mesaId).stream()
-                .map(inscripcionFinalMapper::toResponse)
+                .map(this::enriquecer)
                 .toList();
     }
 
@@ -148,7 +150,7 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
     @Transactional(readOnly = true)
     public List<InscripcionFinalResponse> listarPorAlumno(Long alumnoId) {
         return inscripcionFinalRepository.findByAlumnoId(alumnoId).stream()
-                .map(inscripcionFinalMapper::toResponse)
+                .map(this::enriquecer)
                 .toList();
     }
 
@@ -186,5 +188,20 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
     private InscripcionFinal buscarPropiaOFallar(Long inscripcionId, Long alumnoId) {
         return inscripcionFinalRepository.findByIdAndAlumnoId(inscripcionId, alumnoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada: " + inscripcionId));
+    }
+
+    /** El mapper deja carreraNombre/resultado en null (no son campos directos de la entidad). */
+    private InscripcionFinalResponse enriquecer(InscripcionFinal entity) {
+        InscripcionFinalResponse base = inscripcionFinalMapper.toResponse(entity);
+        String carrera = planMateriaRepository.buscarCarreraVigentePorMateria(entity.getMesa().getMateria().getId())
+                .orElse(null);
+        String resultado = intentoFinalRepository.findByInscripcionFinalId(entity.getId()).stream()
+                .map(IntentoFinal::getResultado)
+                .filter(java.util.Objects::nonNull)
+                .findFirst()
+                .map(Enum::name)
+                .orElse(null);
+        return new InscripcionFinalResponse(base.id(), base.materiaNombre(), base.fechaMesa(), base.turno(),
+                base.estado(), base.profesor(), carrera, resultado);
     }
 }

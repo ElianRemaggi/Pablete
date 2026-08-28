@@ -6,6 +6,9 @@ export interface InscripcionFinalResponse {
   fechaMesa: string;
   turno: string;
   estado: string;
+  profesor: string | null;
+  carreraNombre: string | null;
+  resultado: string | null;
 }
 
 export async function listarInscripcionesFinalPropias(): Promise<InscripcionFinalResponse[]> {

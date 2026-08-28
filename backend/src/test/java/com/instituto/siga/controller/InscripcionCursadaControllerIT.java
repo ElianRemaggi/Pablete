@@ -73,7 +73,7 @@ class InscripcionCursadaControllerIT {
         String body = mockMvc.perform(post("/api/v1/comisiones")
                         .header("Authorization", "Bearer " + admin)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new ComisionRequest(materiaId, nombre, "2026-1C", cupo, horarios))))
+                        .content(objectMapper.writeValueAsString(new ComisionRequest(materiaId, nombre, "2026-1C", cupo, null, horarios))))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         return objectMapper.readTree(body).get("id").asLong();

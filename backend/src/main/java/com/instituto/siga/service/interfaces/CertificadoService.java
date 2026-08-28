@@ -13,4 +13,12 @@ public interface CertificadoService {
     byte[] generarAlumnoRegularParaAlumno(Long alumnoId);
 
     List<CertificadoResponse> historialPropio(Long usuarioId);
+
+    byte[] generarComprobanteCursadaPropio(Long alumnoId, Long inscripcionId);
+
+    byte[] generarComprobanteFinalPropio(Long alumnoId, Long inscripcionId);
+
+    byte[] generarComprobanteCursadaParaAlumno(Long alumnoId, Long inscripcionId);
+
+    byte[] generarComprobanteFinalParaAlumno(Long alumnoId, Long inscripcionId);
 }

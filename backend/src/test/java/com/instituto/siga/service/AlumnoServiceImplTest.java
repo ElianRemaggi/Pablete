@@ -66,7 +66,7 @@ class AlumnoServiceImplTest {
         Alumno alumno = alumnoDeEjemplo();
         when(alumnoRepository.findById(1L)).thenReturn(Optional.of(alumno));
         when(alumnoMapper.toResponse(alumno))
-                .thenReturn(new AlumnoResponse(1L, "30111111", "Juan", "Perez", "LEG-0001", LocalDate.now()));
+                .thenReturn(new AlumnoResponse(1L, "30111111", "Juan", "Perez", "juan@test.com", "LEG-0001", LocalDate.now()));
 
         AlumnoResponse response = alumnoService.obtenerPropio(1L);
 
@@ -76,11 +76,11 @@ class AlumnoServiceImplTest {
     @Test
     void buscar_delegaEnRepositorioYMapeaCadaResultado() {
         Alumno alumno = alumnoDeEjemplo();
-        when(alumnoRepository.buscar("LEG-0001", null, null)).thenReturn(List.of(alumno));
+        when(alumnoRepository.buscar("LEG-0001", null, null, null)).thenReturn(List.of(alumno));
         when(alumnoMapper.toResponse(alumno))
-                .thenReturn(new AlumnoResponse(1L, "30111111", "Juan", "Perez", "LEG-0001", LocalDate.now()));
+                .thenReturn(new AlumnoResponse(1L, "30111111", "Juan", "Perez", "juan@test.com", "LEG-0001", LocalDate.now()));
 
-        List<AlumnoResponse> resultado = alumnoService.buscar("LEG-0001", null, null);
+        List<AlumnoResponse> resultado = alumnoService.buscar("LEG-0001", null, null, null);
 
         assertThat(resultado).hasSize(1);
     }

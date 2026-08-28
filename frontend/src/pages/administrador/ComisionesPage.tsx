@@ -48,6 +48,7 @@ const comisionSchema = z.object({
   nombre: z.string().min(1, 'El nombre es obligatorio'),
   periodoLectivo: z.string().min(1, 'El período es obligatorio'),
   cupoMaximo: z.coerce.number().int().min(1, 'Debe ser mayor a 0'),
+  profesor: z.string().optional(),
   horarios: z.array(horarioSchema),
 });
 
@@ -147,7 +148,7 @@ export function ComisionesPage() {
 
   const abrirAlta = () => {
     setComisionEnEdicion(null);
-    reset({ materiaId: undefined, nombre: '', periodoLectivo: '', cupoMaximo: 0, horarios: [] });
+    reset({ materiaId: undefined, nombre: '', periodoLectivo: '', cupoMaximo: 0, profesor: '', horarios: [] });
     setModalComision(true);
   };
 
@@ -158,6 +159,7 @@ export function ComisionesPage() {
       nombre: comision.nombre,
       periodoLectivo: comision.periodoLectivo,
       cupoMaximo: comision.cupoMaximo,
+      profesor: comision.profesor ?? '',
       horarios: [],
     });
     setModalComision(true);
@@ -176,6 +178,7 @@ export function ComisionesPage() {
     { key: 'nombre', header: 'Comisión', render: (c) => c.nombre },
     { key: 'periodoLectivo', header: 'Período', render: (c) => c.periodoLectivo },
     { key: 'cupoMaximo', header: 'Cupo', render: (c) => c.cupoMaximo },
+    { key: 'profesor', header: 'Profesor', render: (c) => c.profesor ?? '—' },
     { key: 'horarios', header: 'Horarios', render: (c) => c.horarios.length },
     {
       key: 'acciones',
@@ -260,6 +263,7 @@ export function ComisionesPage() {
             helperText={errors.cupoMaximo?.message}
             {...register('cupoMaximo')}
           />
+          <TextField label="Profesor" fullWidth {...register('profesor')} />
 
           {!comisionEnEdicion && (
             <>

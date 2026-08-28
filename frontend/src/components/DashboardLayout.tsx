@@ -21,6 +21,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { logout as logoutRequest } from '../api/authApi';
+import logoIset from '../assets/logo-iset.jpg';
 
 const DRAWER_WIDTH = 260;
 
@@ -57,7 +58,13 @@ export function DashboardLayout({ titulo, navItems }: DashboardLayoutProps) {
 
   const drawerContent = (
     <div>
-      <Toolbar>
+      <Toolbar sx={{ gap: 1.5 }}>
+        <Box
+          component="img"
+          src={logoIset}
+          alt="ISET"
+          sx={{ height: 36, width: 36, objectFit: 'contain' }}
+        />
         <Typography variant="h6" noWrap component="div">
           SIGA
         </Typography>
@@ -90,6 +97,14 @@ export function DashboardLayout({ titulo, navItems }: DashboardLayoutProps) {
             <IconButton color="inherit" edge="start" onClick={() => setMobileOpen(true)} sx={{ mr: 2 }}>
               <MenuIcon />
             </IconButton>
+          )}
+          {isMobile && (
+            <Box
+              component="img"
+              src={logoIset}
+              alt="ISET"
+              sx={{ height: 28, width: 28, objectFit: 'contain', mr: 1.5, borderRadius: '4px', bgcolor: '#fff' }}
+            />
           )}
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             {titulo}

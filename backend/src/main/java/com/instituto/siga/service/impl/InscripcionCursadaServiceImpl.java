@@ -16,6 +16,7 @@ import com.instituto.siga.repository.AlumnoRepository;
 import com.instituto.siga.repository.ComisionRepository;
 import com.instituto.siga.repository.ConfiguracionInstitucionalRepository;
 import com.instituto.siga.repository.InscripcionCursadaRepository;
+import com.instituto.siga.repository.PlanMateriaRepository;
 import com.instituto.siga.service.interfaces.EstadoAcademicoService;
 import com.instituto.siga.service.interfaces.InscripcionCursadaService;
 import com.instituto.siga.validation.ValidadorInscripcionCursada;
@@ -41,6 +42,7 @@ public class InscripcionCursadaServiceImpl implements InscripcionCursadaService 
     private final ComisionRepository comisionRepository;
     private final ConfiguracionInstitucionalRepository configuracionRepository;
     private final EstadoAcademicoService estadoAcademicoService;
+    private final PlanMateriaRepository planMateriaRepository;
     private final InscripcionCursadaMapper inscripcionCursadaMapper;
     private final AuditoriaPublisher auditoriaPublisher;
     private final List<ValidadorInscripcionCursada> validadores; // orden por @Order de cada @Component
@@ -73,7 +75,7 @@ public class InscripcionCursadaServiceImpl implements InscripcionCursadaService 
         auditoriaPublisher.publicar(alumnoId, "INSCRIPCION_CURSADA_ALTA", "InscripcionCursada", guardada.getId(),
                 Map.of("comisionId", comision.getId(), "materiaId", comision.getMateria().getId()));
 
-        return inscripcionCursadaMapper.toResponse(guardada);
+        return enriquecer(guardada);
     }
 
     @Override
@@ -105,7 +107,7 @@ public class InscripcionCursadaServiceImpl implements InscripcionCursadaService 
         auditoriaPublisher.publicar(alumnoId, "INSCRIPCION_CURSADA_MODIFICADA", "InscripcionCursada", guardada.getId(),
                 Map.of("comisionId", nuevaComision.getId(), "materiaId", nuevaComision.getMateria().getId()));
 
-        return inscripcionCursadaMapper.toResponse(guardada);
+        return enriquecer(guardada);
     }
 
     @Override
@@ -127,7 +129,7 @@ public class InscripcionCursadaServiceImpl implements InscripcionCursadaService 
     @Transactional(readOnly = true)
     public List<InscripcionCursadaResponse> listarPropias(Long alumnoId) {
         return inscripcionCursadaRepository.findByAlumnoIdAndEstadoIn(alumnoId, ACTIVOS).stream()
-                .map(inscripcionCursadaMapper::toResponse)
+                .map(this::enriquecer)
                 .toList();
     }
 
@@ -136,7 +138,7 @@ public class InscripcionCursadaServiceImpl implements InscripcionCursadaService 
     @Transactional(readOnly = true)
     public List<InscripcionCursadaResponse> listarPorComision(Long comisionId) {
         return inscripcionCursadaRepository.findByComisionId(comisionId).stream()
-                .map(inscripcionCursadaMapper::toResponse)
+                .map(this::enriquecer)
                 .toList();
     }
 
@@ -145,7 +147,7 @@ public class InscripcionCursadaServiceImpl implements InscripcionCursadaService 
     @Transactional(readOnly = true)
     public List<InscripcionCursadaResponse> listarPorAlumno(Long alumnoId) {
         return inscripcionCursadaRepository.findByAlumnoId(alumnoId).stream()
-                .map(inscripcionCursadaMapper::toResponse)
+                .map(this::enriquecer)
                 .toList();
     }
 
@@ -172,5 +174,14 @@ public class InscripcionCursadaServiceImpl implements InscripcionCursadaService 
         if (LocalDateTime.now().isAfter(config.getFechaCierreCursadas())) {
             throw new BusinessException("FUERA_DE_PLAZO", "El período de inscripción a cursadas ya cerró");
         }
+    }
+
+    /** El mapper deja carreraNombre en null (no es un campo de la entidad): se resuelve aca. */
+    private InscripcionCursadaResponse enriquecer(InscripcionCursada entity) {
+        InscripcionCursadaResponse base = inscripcionCursadaMapper.toResponse(entity);
+        String carrera = planMateriaRepository.buscarCarreraVigentePorMateria(entity.getComision().getMateria().getId())
+                .orElse(null);
+        return new InscripcionCursadaResponse(base.id(), base.materiaNombre(), base.comisionNombre(), base.estado(),
+                base.fechaInscripcion(), base.profesor(), carrera, base.horarios());
     }
 }

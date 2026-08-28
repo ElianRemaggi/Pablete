@@ -35,18 +35,19 @@ Entidades principales y sus relaciones:
 | `materia` | id | — | UNIQUE(codigo) |
 | `plan_materia` | (plan_id, materia_id) | plan_id→plan_estudio, materia_id→materia | incluye `anio`, `cuatrimestre` |
 | `correlatividad` | id | materia_id→materia, materia_requerida_id→materia | UNIQUE(materia_id, materia_requerida_id), CHECK(materia_id <> materia_requerida_id) |
-| `comision` | id | materia_id→materia | UNIQUE(materia_id, nombre, periodo_lectivo) |
+| `comision` | id | materia_id→materia | UNIQUE(materia_id, nombre, periodo_lectivo); `profesor` VARCHAR(150) NULL (agregado en la actualización de calendario/comprobantes — texto libre, no hay entidad Profesor) |
 | `horario` | id | comision_id→comision | CHECK(hora_fin > hora_inicio) |
-| `alumno_carrera` | (alumno_id, carrera_id) | alumno_id→alumno, carrera_id→carrera | inscripción del alumno a la carrera/plan |
+| `alumno_carrera` | (alumno_id, carrera_id) | alumno_id→alumno, carrera_id→carrera | inscripción del alumno a la carrera/plan (tabla presente en la DDL pero sin entidad JPA — no usada por el código) |
 | `inscripcion_cursada` | id | alumno_id→alumno, comision_id→comision | UNIQUE(alumno_id, comision_id), estado ENUM |
-| `mesa_examen` | id | materia_id→materia | UNIQUE(materia_id, fecha, turno) |
+| `mesa_examen` | id | materia_id→materia | UNIQUE(materia_id, fecha, turno); `profesor` VARCHAR(150) NULL (idem comisión) |
 | `inscripcion_final` | id | alumno_id→alumno, mesa_id→mesa_examen | UNIQUE(alumno_id, mesa_id), estado ENUM |
 | `intento_final` | id | alumno_id→alumno, materia_id→materia, inscripcion_final_id→inscripcion_final | nro_intento incremental por (alumno, materia) |
 | `estado_academico_materia` | id | alumno_id→alumno, materia_id→materia | UNIQUE(alumno_id, materia_id), estado ENUM(PENDIENTE, CURSANDO, REGULAR, APROBADA, LIBRE) |
-| `certificado_emitido` | id | alumno_id→alumno | tipo ENUM(ALUMNO_REGULAR, ANALITICO_PARCIAL), hash del PDF |
+| `certificado_emitido` | id | alumno_id→alumno | tipo ENUM(ALUMNO_REGULAR, ANALITICO_PARCIAL, COMPROBANTE_CURSADA, COMPROBANTE_FINAL — los dos últimos agregados en la actualización de calendario/comprobantes), hash del PDF |
 | `configuracion_institucional` | id | — | fila única (`id = 1` forzado por CHECK o patrón singleton) |
 | `auditoria` | id | usuario_id→usuario (nullable) | accion, entidad, entidad_id, fecha, ip |
 | `refresh_token` | id | usuario_id→usuario | token UNIQUE, expiracion, revocado |
+| `evento_academico` | id | creado_por→usuario (nullable) | agregada en la actualización de calendario/comprobantes; tipo ENUM(EVENTO_ACADEMICO, FECHA_LIMITE) — cursadas/finales/inscripciones del calendario NO se persisten acá, se derivan en tiempo real de `horario`/`mesa_examen`/`inscripcion_cursada`/`inscripcion_final`/`configuracion_institucional` |
 
 ## 3. Normalización
 

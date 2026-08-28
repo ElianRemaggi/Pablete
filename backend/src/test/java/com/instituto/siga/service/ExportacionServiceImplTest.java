@@ -122,7 +122,7 @@ class ExportacionServiceImplTest {
 
     @Test
     void exportarAlumnos_generaXlsxConLosResultadosDeLaBusqueda() {
-        when(alumnoRepository.buscar("LEG-0001", null, null)).thenReturn(List.of(alumnoDeEjemplo()));
+        when(alumnoRepository.buscar("LEG-0001", null, null, null)).thenReturn(List.of(alumnoDeEjemplo()));
 
         byte[] resultado = exportacionService.exportarAlumnos("LEG-0001", null, null);
 
@@ -131,7 +131,7 @@ class ExportacionServiceImplTest {
 
     @Test
     void exportarAlumnos_sinResultados_generaXlsxSoloConEncabezado() {
-        when(alumnoRepository.buscar(null, null, null)).thenReturn(List.of());
+        when(alumnoRepository.buscar(null, null, null, null)).thenReturn(List.of());
 
         byte[] resultado = exportacionService.exportarAlumnos(null, null, null);
 

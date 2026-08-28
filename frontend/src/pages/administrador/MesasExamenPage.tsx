@@ -25,6 +25,7 @@ const schema = z.object({
   fecha: z.string().min(1, 'La fecha es obligatoria'),
   turno: z.enum(['MANANA', 'TARDE', 'NOCHE']),
   cupoMaximo: z.coerce.number().int().min(1, 'Debe ser mayor a 0'),
+  profesor: z.string().optional(),
 });
 
 type FormInput = z.input<typeof schema>;
@@ -82,13 +83,19 @@ export function MesasExamenPage() {
 
   const abrirAlta = () => {
     setMesaEnEdicion(null);
-    reset({ materiaId: undefined, fecha: '', turno: 'MANANA', cupoMaximo: 0 });
+    reset({ materiaId: undefined, fecha: '', turno: 'MANANA', cupoMaximo: 0, profesor: '' });
     setModalAbierto(true);
   };
 
   const abrirEdicion = (mesa: MesaExamenResponse) => {
     setMesaEnEdicion(mesa);
-    reset({ materiaId: mesa.materiaId, fecha: mesa.fecha, turno: mesa.turno as FormValues['turno'], cupoMaximo: mesa.cupoMaximo });
+    reset({
+      materiaId: mesa.materiaId,
+      fecha: mesa.fecha,
+      turno: mesa.turno as FormValues['turno'],
+      cupoMaximo: mesa.cupoMaximo,
+      profesor: mesa.profesor ?? '',
+    });
     setModalAbierto(true);
   };
 
@@ -105,6 +112,7 @@ export function MesasExamenPage() {
     { key: 'fecha', header: 'Fecha', render: (m) => new Date(m.fecha).toLocaleDateString('es-AR') },
     { key: 'turno', header: 'Turno', render: (m) => m.turno },
     { key: 'cupoMaximo', header: 'Cupo', render: (m) => m.cupoMaximo },
+    { key: 'profesor', header: 'Profesor', render: (m) => m.profesor ?? '—' },
     {
       key: 'acciones',
       header: 'Acciones',
@@ -190,6 +198,7 @@ export function MesasExamenPage() {
             helperText={errors.cupoMaximo?.message}
             {...register('cupoMaximo')}
           />
+          <TextField label="Profesor" fullWidth {...register('profesor')} />
         </Stack>
       </FormModal>
 

@@ -77,7 +77,7 @@ class ExportacionControllerIT {
     }
 
     private long crearComision(String admin, long materiaId) throws Exception {
-        ComisionRequest request = new ComisionRequest(materiaId, "A", "2026-1C", 30,
+        ComisionRequest request = new ComisionRequest(materiaId, "A", "2026-1C", 30, null,
                 List.of(new HorarioRequest(1, LocalTime.of(18, 0), LocalTime.of(20, 0), "Aula 1")));
         String body = mockMvc.perform(post("/api/v1/comisiones")
                         .header("Authorization", "Bearer " + admin)
@@ -93,7 +93,7 @@ class ExportacionControllerIT {
                         .header("Authorization", "Bearer " + admin)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new MesaExamenRequest(materiaId, LocalDate.now().plusDays(30), Turno.MANANA, 20))))
+                                new MesaExamenRequest(materiaId, LocalDate.now().plusDays(30), Turno.MANANA, 20, null))))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         return objectMapper.readTree(body).get("id").asLong();

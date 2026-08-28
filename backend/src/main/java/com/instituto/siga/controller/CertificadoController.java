@@ -36,6 +36,26 @@ public class CertificadoController {
         return pdf(certificadoService.generarAlumnoRegularParaAlumno(id), "alumno-regular.pdf");
     }
 
+    @GetMapping("/inscripcion-cursada/{id}")
+    public ResponseEntity<byte[]> comprobanteCursadaPropio(@AuthenticationPrincipal Long alumnoId, @PathVariable Long id) {
+        return pdf(certificadoService.generarComprobanteCursadaPropio(alumnoId, id), "comprobante-cursada-" + id + ".pdf");
+    }
+
+    @GetMapping("/inscripcion-final/{id}")
+    public ResponseEntity<byte[]> comprobanteFinalPropio(@AuthenticationPrincipal Long alumnoId, @PathVariable Long id) {
+        return pdf(certificadoService.generarComprobanteFinalPropio(alumnoId, id), "comprobante-final-" + id + ".pdf");
+    }
+
+    @GetMapping("/alumno/{alumnoId}/inscripcion-cursada/{id}")
+    public ResponseEntity<byte[]> comprobanteCursadaParaAlumno(@PathVariable Long alumnoId, @PathVariable Long id) {
+        return pdf(certificadoService.generarComprobanteCursadaParaAlumno(alumnoId, id), "comprobante-cursada-" + id + ".pdf");
+    }
+
+    @GetMapping("/alumno/{alumnoId}/inscripcion-final/{id}")
+    public ResponseEntity<byte[]> comprobanteFinalParaAlumno(@PathVariable Long alumnoId, @PathVariable Long id) {
+        return pdf(certificadoService.generarComprobanteFinalParaAlumno(alumnoId, id), "comprobante-final-" + id + ".pdf");
+    }
+
     @GetMapping("/historial")
     public ResponseEntity<List<CertificadoResponse>> historial(@AuthenticationPrincipal Long usuarioId) {
         return ResponseEntity.ok(certificadoService.historialPropio(usuarioId));

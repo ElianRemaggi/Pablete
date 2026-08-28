@@ -22,6 +22,7 @@ export interface ComisionResponse {
   nombre: string;
   periodoLectivo: string;
   cupoMaximo: number;
+  profesor: string | null;
   horarios: HorarioResponse[];
 }
 
@@ -30,6 +31,7 @@ export interface ComisionRequest {
   nombre: string;
   periodoLectivo: string;
   cupoMaximo: number;
+  profesor?: string;
   horarios: HorarioRequest[];
 }
 

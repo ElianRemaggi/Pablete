@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Chip, CircularProgress, Stack, Typography } from '@mui/material';
 import { DataTable, type DataTableColumn } from '../../components/DataTable';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { FileDownloadButton } from '../../components/FileDownloadButton';
 import { useSnackbar } from '../../components/SnackbarProvider';
 import { extraerMensajeError } from '../../utils/apiError';
 import { listarMesasExamen, type MesaExamenResponse } from '../../api/mesasExamenApi';
@@ -65,6 +66,18 @@ export function AlumnoInscripcionFinalPage() {
     { key: 'fechaMesa', header: 'Fecha', render: (i) => new Date(i.fechaMesa).toLocaleDateString('es-AR') },
     { key: 'turno', header: 'Turno', render: (i) => i.turno },
     { key: 'estado', header: 'Estado', render: (i) => <Chip label={i.estado} size="small" /> },
+    {
+      key: 'comprobante',
+      header: 'Comprobante',
+      render: (i) => (
+        <FileDownloadButton
+          url={`/certificados/inscripcion-final/${i.id}`}
+          nombreArchivo={`comprobante-final-${i.id}.pdf`}
+          label="PDF"
+          size="small"
+        />
+      ),
+    },
     {
       key: 'acciones',
       header: 'Acciones',

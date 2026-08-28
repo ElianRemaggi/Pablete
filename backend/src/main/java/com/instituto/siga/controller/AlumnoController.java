@@ -42,8 +42,9 @@ public class AlumnoController {
     public ResponseEntity<List<AlumnoResponse>> buscar(
             @RequestParam(required = false) String legajo,
             @RequestParam(required = false) String dni,
-            @RequestParam(required = false) String apellido) {
-        return ResponseEntity.ok(alumnoService.buscar(legajo, dni, apellido));
+            @RequestParam(required = false) String apellido,
+            @RequestParam(required = false) String nombre) {
+        return ResponseEntity.ok(alumnoService.buscar(legajo, dni, apellido, nombre));
     }
 
     @GetMapping("/me/historial-academico")

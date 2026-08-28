@@ -9,5 +9,6 @@ public record ComisionResponse(
         String nombre,
         String periodoLectivo,
         int cupoMaximo,
+        String profesor,
         List<HorarioResponse> horarios) {
 }

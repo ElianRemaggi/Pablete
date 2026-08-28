@@ -78,6 +78,7 @@ public class ComisionServiceImpl implements ComisionService {
                 .nombre(request.nombre())
                 .periodoLectivo(request.periodoLectivo())
                 .cupoMaximo(request.cupoMaximo())
+                .profesor(request.profesor())
                 .horarios(new ArrayList<>())
                 .build();
 
@@ -114,6 +115,7 @@ public class ComisionServiceImpl implements ComisionService {
         comision.setNombre(request.nombre());
         comision.setPeriodoLectivo(request.periodoLectivo());
         comision.setCupoMaximo(request.cupoMaximo());
+        comision.setProfesor(request.profesor());
 
         Comision guardada = comisionRepository.save(comision);
         auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "COMISION_ACTUALIZADA", "Comision", guardada.getId(),

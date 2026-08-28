@@ -17,6 +17,7 @@ import com.instituto.siga.repository.AlumnoRepository;
 import com.instituto.siga.repository.ComisionRepository;
 import com.instituto.siga.repository.ConfiguracionInstitucionalRepository;
 import com.instituto.siga.repository.InscripcionCursadaRepository;
+import com.instituto.siga.repository.PlanMateriaRepository;
 import com.instituto.siga.service.impl.InscripcionCursadaServiceImpl;
 import com.instituto.siga.service.interfaces.EstadoAcademicoService;
 import com.instituto.siga.validation.ValidadorInscripcionCursada;
@@ -56,6 +57,8 @@ class InscripcionCursadaServiceImplTest {
     @Mock
     private EstadoAcademicoService estadoAcademicoService;
     @Mock
+    private PlanMateriaRepository planMateriaRepository;
+    @Mock
     private InscripcionCursadaMapper inscripcionCursadaMapper;
     @Mock
     private AuditoriaPublisher auditoriaPublisher;
@@ -72,14 +75,15 @@ class InscripcionCursadaServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new InscripcionCursadaServiceImpl(inscripcionCursadaRepository, alumnoRepository, comisionRepository,
-                configuracionRepository, estadoAcademicoService, inscripcionCursadaMapper, auditoriaPublisher,
-                List.of(otroValidador, validadorVentana));
+                configuracionRepository, estadoAcademicoService, planMateriaRepository, inscripcionCursadaMapper,
+                auditoriaPublisher, List.of(otroValidador, validadorVentana));
 
         alumno = Alumno.builder().usuarioId(1L).build();
         comision = Comision.builder().id(1L).materia(Materia.builder().id(1L).nombre("Materia").build()).build();
 
         lenient().when(alumnoRepository.findById(1L)).thenReturn(Optional.of(alumno));
         lenient().when(comisionRepository.findById(1L)).thenReturn(Optional.of(comision));
+        lenient().when(planMateriaRepository.buscarCarreraVigentePorMateria(any())).thenReturn(Optional.empty());
     }
 
     @Test
@@ -110,7 +114,7 @@ class InscripcionCursadaServiceImplTest {
         when(inscripcionCursadaRepository.existsByAlumnoIdAndComisionIdAndEstadoIn(any(), any(), any())).thenReturn(false);
         when(inscripcionCursadaRepository.save(any(InscripcionCursada.class))).thenAnswer(inv -> inv.getArgument(0));
         when(inscripcionCursadaMapper.toResponse(any(InscripcionCursada.class))).thenReturn(
-                new InscripcionCursadaResponse(1L, "Materia", "A", "INSCRIPTO", LocalDateTime.now()));
+                new InscripcionCursadaResponse(1L, "Materia", "A", "INSCRIPTO", LocalDateTime.now(), null, null, List.of()));
 
         InscripcionCursadaResponse response = service.inscribir(1L, new InscripcionCursadaRequest(1L));
 
@@ -151,7 +155,7 @@ class InscripcionCursadaServiceImplTest {
                 ConfiguracionInstitucional.builder().fechaCierreCursadas(LocalDateTime.now().plusDays(10)).build()));
         when(inscripcionCursadaRepository.save(any(InscripcionCursada.class))).thenAnswer(inv -> inv.getArgument(0));
         when(inscripcionCursadaMapper.toResponse(any(InscripcionCursada.class))).thenReturn(
-                new InscripcionCursadaResponse(5L, "Materia", "A", "MODIFICADA", LocalDateTime.now()));
+                new InscripcionCursadaResponse(5L, "Materia", "A", "MODIFICADA", LocalDateTime.now(), null, null, List.of()));
 
         service.modificar(1L, 5L, new InscripcionCursadaRequest(1L));
 
@@ -165,7 +169,7 @@ class InscripcionCursadaServiceImplTest {
                 .estado(EstadoInscripcion.BAJA).build();
         when(inscripcionCursadaRepository.findByAlumnoId(1L)).thenReturn(List.of(propia));
         when(inscripcionCursadaMapper.toResponse(propia)).thenReturn(
-                new InscripcionCursadaResponse(5L, "Materia", "A", "BAJA", LocalDateTime.now()));
+                new InscripcionCursadaResponse(5L, "Materia", "A", "BAJA", LocalDateTime.now(), null, null, List.of()));
 
         List<InscripcionCursadaResponse> resultado = service.listarPorAlumno(1L);
 
