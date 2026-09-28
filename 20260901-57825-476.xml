@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<orden>
+    <info>
+        <ts>01/09/2026</ts>
+        <cobertura nroAfil="3021900" nroCober="2215" siglas="2215|I"nSSjp"/>
+        <procedencia/>
+        <diagnostico>prueba</diagnostico>
+        <observaciones/>
+        <determinaciones>
+            <determinacion>
+                <nombre>FER</nombre>
+                <descripcion>FERREMIA</descripcion>
+                <sector>1</sector>
+                <sangre>1</sangre>
+            </determinacion>
+        </determinaciones>
+        <practicas>
+            <practica>
+                <nombre>660343</nombre>
+                <descripcion>FERREMIA.</descripcion>
+                <cantidad>1</cantidad>
+                <modalidad>5</modalidad>
+                <valorizacion modalidad="5"/>
+            </practica>
+        </practicas>
+    </info>
+    <paciente edad="96,47" hc="2" nombre="PIOLON CRISTINA PAULA    "/>
+    <operador codigo="XXX" especialidad="CIR.CARDIOVASCULAR" nombre="*NO EXISTE*"/>
+    <ingreso fecha="03/09/2026" mesanio="2026-09" nroingreso="20"/>
+</orden>

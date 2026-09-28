@@ -92,7 +92,7 @@ class InscripcionFinalControllerIT {
         mockMvc.perform(put("/api/v1/alumnos/" + alumnoId + "/estado-academico/" + materiaId)
                         .header("Authorization", "Bearer " + admin)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new EstadoAcademicoRequest(EstadoMateria.REGULAR))))
+                        .content(objectMapper.writeValueAsString(new EstadoAcademicoRequest(EstadoMateria.REGULAR, null))))
                 .andExpect(status().isOk());
     }
 

@@ -84,7 +84,7 @@ class ReporteControllerIT {
         mockMvc.perform(put("/api/v1/alumnos/" + alumnoId + "/estado-academico/" + materiaId)
                         .header("Authorization", "Bearer " + admin)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new EstadoAcademicoRequest(EstadoMateria.APROBADA))))
+                        .content(objectMapper.writeValueAsString(new EstadoAcademicoRequest(EstadoMateria.APROBADA, null))))
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/v1/reportes/tasa-aprobacion-por-materia").header("Authorization", "Bearer " + admin))

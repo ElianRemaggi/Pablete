@@ -72,6 +72,6 @@ public class AlumnoController {
     @PutMapping("/{id}/estado-academico/{materiaId}")
     public ResponseEntity<EstadoAcademicoResponse> fijarEstadoAcademico(
             @PathVariable Long id, @PathVariable Long materiaId, @Valid @RequestBody EstadoAcademicoRequest request) {
-        return ResponseEntity.ok(estadoAcademicoService.fijarEstado(id, materiaId, request.estado()));
+        return ResponseEntity.ok(estadoAcademicoService.fijarEstado(id, materiaId, request.estado(), request.nota()));
     }
 }

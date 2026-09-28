@@ -161,7 +161,7 @@ class InscripcionCursadaControllerIT {
         mockMvc.perform(put("/api/v1/alumnos/" + alumno.id() + "/estado-academico/" + requerida)
                         .header("Authorization", "Bearer " + admin)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new EstadoAcademicoRequest(EstadoMateria.APROBADA))))
+                        .content(objectMapper.writeValueAsString(new EstadoAcademicoRequest(EstadoMateria.APROBADA, null))))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/v1/inscripciones-cursada")

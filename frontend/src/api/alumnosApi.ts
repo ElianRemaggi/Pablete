@@ -14,6 +14,7 @@ export interface HistorialAcademicoResponse {
   materiaCodigo: string;
   materiaNombre: string;
   estado: string;
+  nota: number | null;
   fechaActualizacion: string;
 }
 

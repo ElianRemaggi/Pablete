@@ -6,5 +6,6 @@ public record HistorialAcademicoResponse(
         String materiaCodigo,
         String materiaNombre,
         String estado,
+        Integer nota,
         LocalDateTime fechaActualizacion) {
 }

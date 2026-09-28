@@ -4,3 +4,7 @@ target/
 .idea/
 .vscode/
 HELP.md
+
+# Historial academico en Excel: datos reales de alumnos (DNI, notas). Cada instalacion usa
+# el suyo (ver app.historial.excel-path); nunca se versiona.
+/data/

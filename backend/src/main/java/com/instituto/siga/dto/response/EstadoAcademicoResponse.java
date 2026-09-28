@@ -7,5 +7,6 @@ public record EstadoAcademicoResponse(
         Long materiaId,
         String materiaNombre,
         String estado,
+        Integer nota,
         LocalDateTime fechaActualizacion) {
 }

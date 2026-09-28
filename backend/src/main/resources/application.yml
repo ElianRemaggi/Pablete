@@ -22,6 +22,11 @@ app:
     refresh-token-exp-ms: ${JWT_REFRESH_EXP_MS:604800000} # 7 dias
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  historial:
+    # Ruta al .xlsx del historial academico. Relativa (se resuelve contra el directorio de
+    # trabajo del proceso) o absoluta — configurable por variable de entorno para que cada
+    # instalacion use su propio archivo sin tocar codigo ni reconstruir el backend.
+    excel-path: ${HISTORIAL_EXCEL_PATH:./data/historial-academico.xlsx}
 
 springdoc:
   swagger-ui:

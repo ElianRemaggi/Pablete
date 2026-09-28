@@ -20,6 +20,7 @@ export function HistorialAcademicoPage() {
     { key: 'materiaCodigo', header: 'Código', render: (h) => h.materiaCodigo },
     { key: 'materiaNombre', header: 'Materia', render: (h) => h.materiaNombre },
     { key: 'estado', header: 'Estado', render: (h) => <Chip label={h.estado} size="small" /> },
+    { key: 'nota', header: 'Nota', render: (h) => h.nota ?? '—' },
     {
       key: 'fecha',
       header: 'Última actualización',

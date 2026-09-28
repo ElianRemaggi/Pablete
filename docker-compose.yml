@@ -5,6 +5,10 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       CORS_ALLOWED_ORIGINS: http://localhost:8081
+      # Para usar un .xlsx propio: montar un volumen con el archivo y apuntar aca, por ejemplo
+      # "- ./mi-historial.xlsx:/config/datos.xlsx" abajo en volumes y
+      # HISTORIAL_EXCEL_PATH: /config/datos.xlsx aca. Sin configurar, usa ./data/historial-academico.xlsx
+      # relativo al working directory del contenedor (vacio si no se monta nada).
     ports:
       - "8080:8080"
     restart: unless-stopped

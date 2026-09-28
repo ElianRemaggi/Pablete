@@ -130,12 +130,12 @@ class AlumnoControllerIT {
         mockMvc.perform(put("/api/v1/alumnos/" + alumno.id() + "/estado-academico/" + materiaAprobada)
                         .header("Authorization", "Bearer " + admin)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new EstadoAcademicoRequest(EstadoMateria.APROBADA))))
+                        .content(objectMapper.writeValueAsString(new EstadoAcademicoRequest(EstadoMateria.APROBADA, null))))
                 .andExpect(status().isOk());
         mockMvc.perform(put("/api/v1/alumnos/" + alumno.id() + "/estado-academico/" + materiaCursando)
                         .header("Authorization", "Bearer " + admin)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new EstadoAcademicoRequest(EstadoMateria.CURSANDO))))
+                        .content(objectMapper.writeValueAsString(new EstadoAcademicoRequest(EstadoMateria.CURSANDO, null))))
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/v1/alumnos/me/historial-academico").header("Authorization", "Bearer " + alumno.token()))

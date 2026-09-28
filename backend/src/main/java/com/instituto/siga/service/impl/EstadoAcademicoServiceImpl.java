@@ -7,19 +7,25 @@ import com.instituto.siga.entity.EstadoAcademicoMateria;
 import com.instituto.siga.entity.EstadoMateria;
 import com.instituto.siga.entity.Materia;
 import com.instituto.siga.exception.ResourceNotFoundException;
+import com.instituto.siga.excel.HistorialExcelWriter;
 import com.instituto.siga.repository.AlumnoRepository;
 import com.instituto.siga.repository.EstadoAcademicoMateriaRepository;
 import com.instituto.siga.repository.MateriaRepository;
 import com.instituto.siga.security.SecurityUtils;
 import com.instituto.siga.service.interfaces.EstadoAcademicoService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EstadoAcademicoServiceImpl implements EstadoAcademicoService {
@@ -28,6 +34,10 @@ public class EstadoAcademicoServiceImpl implements EstadoAcademicoService {
     private final AlumnoRepository alumnoRepository;
     private final MateriaRepository materiaRepository;
     private final AuditoriaPublisher auditoriaPublisher;
+    private final HistorialExcelWriter historialExcelWriter;
+
+    @Value("${app.historial.excel-path}")
+    private String excelPath;
 
     @Override
     @Transactional(readOnly = true)
@@ -62,7 +72,7 @@ public class EstadoAcademicoServiceImpl implements EstadoAcademicoService {
     @Override
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @Transactional
-    public EstadoAcademicoResponse fijarEstado(Long alumnoId, Long materiaId, EstadoMateria nuevoEstado) {
+    public EstadoAcademicoResponse fijarEstado(Long alumnoId, Long materiaId, EstadoMateria nuevoEstado, Integer nota) {
         Alumno alumno = alumnoRepository.findById(alumnoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Alumno no encontrado: " + alumnoId));
         Materia materia = materiaRepository.findById(materiaId)
@@ -71,6 +81,7 @@ public class EstadoAcademicoServiceImpl implements EstadoAcademicoService {
         EstadoAcademicoMateria estado = estadoRepository.findByAlumnoIdAndMateriaId(alumnoId, materiaId)
                 .orElseGet(() -> EstadoAcademicoMateria.builder().alumno(alumno).materia(materia).build());
         estado.setEstado(nuevoEstado);
+        estado.setNota(nota);
         estado.setFechaActualizacion(LocalDateTime.now());
 
         EstadoAcademicoMateria guardado = estadoRepository.save(estado);
@@ -78,7 +89,22 @@ public class EstadoAcademicoServiceImpl implements EstadoAcademicoService {
                 "EstadoAcademicoMateria", guardado.getId(),
                 Map.of("alumnoId", alumnoId, "materiaId", materiaId, "estado", nuevoEstado.name()));
 
-        return new EstadoAcademicoResponse(alumnoId, materiaId, materia.getNombre(), nuevoEstado.name(),
+        sincronizarConExcel(alumno, materia, nuevoEstado, nota);
+
+        return new EstadoAcademicoResponse(alumnoId, materiaId, materia.getNombre(), nuevoEstado.name(), nota,
                 guardado.getFechaActualizacion());
+    }
+
+    /** Escritura hacia el .xlsx configurado (frontend -> API -> backend -> XLSX): si el archivo
+     * no tiene fila para este alumno/materia (porque nunca se importaron desde ahi), el writer no
+     * hace nada y devuelve false — no rompe la actualizacion en base, que ya se confirmo arriba. */
+    private void sincronizarConExcel(Alumno alumno, Materia materia, EstadoMateria estado, Integer nota) {
+        try {
+            String dni = alumno.getUsuario().getDni();
+            historialExcelWriter.actualizarCelda(Path.of(excelPath), dni, materia.getNombre(),
+                    estado, nota, LocalDate.now());
+        } catch (Exception e) {
+            log.warn("No se pudo sincronizar el cambio de estado academico con el Excel", e);
+        }
     }
 }

@@ -100,9 +100,9 @@ class AlumnoServiceImplTest {
         when(alumnoRepository.findById(1L)).thenReturn(Optional.of(alumno));
         when(estadoAcademicoMateriaRepository.findByAlumnoId(1L)).thenReturn(List.of(aprobada, cursando));
         when(historialAcademicoMapper.toResponse(aprobada))
-                .thenReturn(new HistorialAcademicoResponse("MAT1", "Materia 1", "APROBADA", LocalDateTime.now()));
+                .thenReturn(new HistorialAcademicoResponse("MAT1", "Materia 1", "APROBADA", null, LocalDateTime.now()));
         when(historialAcademicoMapper.toResponse(cursando))
-                .thenReturn(new HistorialAcademicoResponse("MAT2", "Materia 2", "CURSANDO", LocalDateTime.now()));
+                .thenReturn(new HistorialAcademicoResponse("MAT2", "Materia 2", "CURSANDO", null, LocalDateTime.now()));
 
         List<HistorialAcademicoResponse> resultado = alumnoService.materiasAprobadasPropias(1L);
 
@@ -125,9 +125,9 @@ class AlumnoServiceImplTest {
         when(alumnoRepository.findById(1L)).thenReturn(Optional.of(alumno));
         when(estadoAcademicoMateriaRepository.findByAlumnoId(1L)).thenReturn(List.of(aprobada, cursando));
         when(historialAcademicoMapper.toResponse(aprobada))
-                .thenReturn(new HistorialAcademicoResponse("MAT1", "Materia 1", "APROBADA", LocalDateTime.now()));
+                .thenReturn(new HistorialAcademicoResponse("MAT1", "Materia 1", "APROBADA", null, LocalDateTime.now()));
         when(historialAcademicoMapper.toResponse(cursando))
-                .thenReturn(new HistorialAcademicoResponse("MAT2", "Materia 2", "CURSANDO", LocalDateTime.now()));
+                .thenReturn(new HistorialAcademicoResponse("MAT2", "Materia 2", "CURSANDO", null, LocalDateTime.now()));
 
         List<HistorialAcademicoResponse> resultado = alumnoService.materiasPendientesPropias(1L);
 

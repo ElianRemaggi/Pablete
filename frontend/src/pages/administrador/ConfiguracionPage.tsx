@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, CircularProgress, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Button, Card, CardContent, CircularProgress, Stack, TextField, Typography } from '@mui/material';
 import { useSnackbar } from '../../components/SnackbarProvider';
 import { actualizarConfiguracion, obtenerConfiguracion, type ConfiguracionResponse } from '../../api/configuracionApi';
+import { recargarHistorialDesdeExcel } from '../../api/historialAcademicoApi';
 
 function toDatetimeLocal(iso: string): string {
   return iso.slice(0, 16);
@@ -35,6 +36,19 @@ export function ConfiguracionPage() {
       queryClient.invalidateQueries({ queryKey: ['configuracion'] });
     },
     onError: () => notify('No se pudo actualizar la configuración (revisá las fechas)', 'error'),
+  });
+
+  const recargaHistorial = useMutation({
+    mutationFn: recargarHistorialDesdeExcel,
+    onSuccess: (resultado) => {
+      notify(
+        `Historial académico sincronizado: ${resultado.actualizados} actualizados, ` +
+          `${resultado.alumnosNoEncontrados} alumno(s) no encontrado(s), ` +
+          `${resultado.materiasNoEncontradas} materia(s) no encontrada(s).`,
+        resultado.alumnosNoEncontrados === 0 && resultado.materiasNoEncontradas === 0 ? 'success' : 'warning',
+      );
+    },
+    onError: () => notify('No se pudo sincronizar el historial académico desde el Excel', 'error'),
   });
 
   return (
@@ -83,6 +97,32 @@ export function ConfiguracionPage() {
           </Button>
         </Stack>
       )}
+
+      <Card>
+        <CardContent>
+          <Stack spacing={1.5}>
+            <Typography variant="h6">Historial académico (Excel)</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Relee el archivo .xlsx configurado en el servidor y vuelca sus cambios a la base. Usalo si alguien
+              editó el archivo por fuera del sistema.
+            </Typography>
+            <Button
+              variant="outlined"
+              onClick={() => recargaHistorial.mutate()}
+              disabled={recargaHistorial.isPending}
+              sx={{ alignSelf: 'flex-start' }}
+            >
+              {recargaHistorial.isPending ? 'Sincronizando…' : 'Recargar desde Excel'}
+            </Button>
+            {recargaHistorial.data && recargaHistorial.data.advertencias.length > 0 && (
+              <Alert severity="warning" sx={{ whiteSpace: 'pre-line' }}>
+                {recargaHistorial.data.advertencias.slice(0, 10).join('\n')}
+                {recargaHistorial.data.advertencias.length > 10 ? '\n…' : ''}
+              </Alert>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
     </Stack>
   );
 }

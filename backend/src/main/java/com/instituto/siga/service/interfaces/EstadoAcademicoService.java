@@ -11,6 +11,7 @@ public interface EstadoAcademicoService {
     /** Efecto de inscribirse a una comision; no pisa un estado ya mas avanzado que PENDIENTE. */
     void marcarCursando(Long alumnoId, Long materiaId);
 
-    /** Override administrativo (docs no define el flujo real todavia: aprobar un final). */
-    EstadoAcademicoResponse fijarEstado(Long alumnoId, Long materiaId, EstadoMateria estado);
+    /** Override administrativo (docs no define el flujo real todavia: aprobar un final).
+     * nota es opcional (1-10); null si el estado no tiene nota asociada (ej. CURSANDO). */
+    EstadoAcademicoResponse fijarEstado(Long alumnoId, Long materiaId, EstadoMateria estado, Integer nota);
 }

@@ -44,6 +44,11 @@ public class EstadoAcademicoMateria {
     @Column(nullable = false, length = 20)
     private EstadoMateria estado;
 
+    /** Nota numerica del final (1-10), origen: importacion desde el historial en Excel. Nullable:
+     * la mayoria de los estados (CURSANDO, PENDIENTE) no tienen nota todavia. */
+    @Column(nullable = true)
+    private Integer nota;
+
     @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
 }

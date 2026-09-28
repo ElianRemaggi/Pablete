@@ -5,6 +5,7 @@ import com.instituto.siga.entity.Alumno;
 import com.instituto.siga.entity.EstadoAcademicoMateria;
 import com.instituto.siga.entity.EstadoMateria;
 import com.instituto.siga.entity.Materia;
+import com.instituto.siga.excel.HistorialExcelWriter;
 import com.instituto.siga.repository.AlumnoRepository;
 import com.instituto.siga.repository.EstadoAcademicoMateriaRepository;
 import com.instituto.siga.repository.MateriaRepository;
@@ -38,12 +39,15 @@ class EstadoAcademicoServiceImplTest {
     private MateriaRepository materiaRepository;
     @Mock
     private AuditoriaPublisher auditoriaPublisher;
+    @Mock
+    private HistorialExcelWriter historialExcelWriter;
 
     private EstadoAcademicoServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new EstadoAcademicoServiceImpl(estadoRepository, alumnoRepository, materiaRepository, auditoriaPublisher);
+        service = new EstadoAcademicoServiceImpl(estadoRepository, alumnoRepository, materiaRepository,
+                auditoriaPublisher, historialExcelWriter);
         lenient().when(alumnoRepository.findById(1L)).thenReturn(Optional.of(Alumno.builder().usuarioId(1L).build()));
         lenient().when(materiaRepository.findById(1L)).thenReturn(Optional.of(Materia.builder().id(1L).nombre("Materia").build()));
     }
@@ -101,7 +105,7 @@ class EstadoAcademicoServiceImplTest {
         when(estadoRepository.findByAlumnoIdAndMateriaId(1L, 1L)).thenReturn(Optional.empty());
         when(estadoRepository.save(any(EstadoAcademicoMateria.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        var response = service.fijarEstado(1L, 1L, EstadoMateria.APROBADA);
+        var response = service.fijarEstado(1L, 1L, EstadoMateria.APROBADA, 8);
 
         assertThat(response.estado()).isEqualTo("APROBADA");
         verify(auditoriaPublisher, times(1)).publicar(any(), eq("ESTADO_ACADEMICO_MODIFICADO"), eq("EstadoAcademicoMateria"), any(), any());

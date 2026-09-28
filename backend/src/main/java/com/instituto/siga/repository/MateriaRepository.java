@@ -13,6 +13,12 @@ public interface MateriaRepository extends JpaRepository<Materia, Long> {
 
     boolean existsByCodigoAndIdNot(String codigo, Long id);
 
+    /** Usado por la importacion de historial desde Excel para matchear el nombre de materia
+     * de cada columna contra el catalogo ya cargado (docs/04, capa excel/). Lista en vez de
+     * Optional a proposito: nombre no es unique en la entidad, y un match ambiguo (>1) debe
+     * reportarse en vez de importar contra la materia equivocada. */
+    List<Materia> findByNombreIgnoreCase(String nombre);
+
     /**
      * LEFT JOIN a proposito: sin filtros debe devolver TODAS las materias, incluidas las que
      * todavia no estan asociadas a ningun plan (docs/04 SS5 preve los filtros, pero el listado
