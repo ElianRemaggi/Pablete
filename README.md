@@ -2,7 +2,26 @@
 
 Reemplaza el proceso manual de inscripciones por Google Forms + Excel del Instituto Superior de Estudios Técnicos (ISET): autenticación por roles, ABM de oferta académica, inscripción a cursadas/finales con validación automática de reglas de negocio, calendario académico personalizado por rol, comprobantes PDF institucionales, y auditoría completa de acciones sensibles.
 
-## 🚀 Probarlo rápido con Docker (recomendado)
+## Primera entrega: exámenes finales + historial en Excel (sin Docker)
+
+Esta versión se concentra en **gestionar e inscribirse a mesas de examen final**, descargar el **comprobante PDF** y sincronizar el **historial académico con un Excel**
+(`data/historial-academico.xlsx`). Las cursadas anuales siguen en el código pero fuera de la interfaz. Guía completa en
+[`docs/12-primera-entrega-examenes-finales.md`](docs/12-primera-entrega-examenes-finales.md) y [`docs/11-historial-excel.md`](docs/11-historial-excel.md).
+
+```bash
+# Terminal 1 — backend en http://localhost:8080 (JDK 17+)
+cd backend && ./mvnw spring-boot:run
+
+# Terminal 2 — frontend en http://localhost:5173 (Node 18+)
+cd frontend && npm install && npm run dev
+```
+
+Usuarios de prueba (login por DNI): `30111222`/`Admin1234` (administrador), `30222333`/`Preceptor1234` (preceptor), `30333444`/`Alumno1234` (alumno).
+Los alumnos nuevos se registran desde la pantalla de login.
+
+> Las secciones de abajo sobre Docker se conservan como referencia del repositorio, pero **esta entrega no requiere ni usa Docker**.
+
+## 🚀 Probarlo rápido con Docker (opcional, no usado en la primera entrega)
 
 Esta es la forma más simple de levantar todo el sistema (backend + frontend) sin instalar Java, Node ni ninguna base de datos a mano. Solo necesitás **Docker Desktop**.
 

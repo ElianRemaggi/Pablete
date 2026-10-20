@@ -1,6 +1,8 @@
 package com.instituto.siga.dto.response;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 public record MesaExamenResponse(
         Long id,
@@ -9,5 +11,15 @@ public record MesaExamenResponse(
         LocalDate fecha,
         String turno,
         int cupoMaximo,
-        String profesor) {
+        String profesor,
+        LocalTime hora,
+        String periodo,
+        String aula,
+        String modalidad,
+        LocalDateTime aperturaInscripcion,
+        LocalDateTime cierreInscripcion,
+        String estado,
+        long inscriptos,
+        long cupoDisponible,
+        boolean inscripcionAbierta) {
 }

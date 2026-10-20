@@ -41,13 +41,15 @@ class EstadoAcademicoServiceImplTest {
     private AuditoriaPublisher auditoriaPublisher;
     @Mock
     private HistorialExcelWriter historialExcelWriter;
+    @Mock
+    private com.instituto.siga.excel.HistorialExcelPath historialExcelPath;
 
     private EstadoAcademicoServiceImpl service;
 
     @BeforeEach
     void setUp() {
         service = new EstadoAcademicoServiceImpl(estadoRepository, alumnoRepository, materiaRepository,
-                auditoriaPublisher, historialExcelWriter);
+                auditoriaPublisher, historialExcelWriter, historialExcelPath);
         lenient().when(alumnoRepository.findById(1L)).thenReturn(Optional.of(Alumno.builder().usuarioId(1L).build()));
         lenient().when(materiaRepository.findById(1L)).thenReturn(Optional.of(Materia.builder().id(1L).nombre("Materia").build()));
     }

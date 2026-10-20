@@ -1,5 +1,6 @@
 package com.instituto.siga.controller;
 
+import com.instituto.siga.dto.request.PerfilUpdateRequest;
 import com.instituto.siga.dto.request.UsuarioRequest;
 import com.instituto.siga.dto.request.UsuarioRolesRequest;
 import com.instituto.siga.dto.request.UsuarioUpdateRequest;
@@ -39,6 +40,12 @@ public class UsuarioController {
     @GetMapping("/me")
     public ResponseEntity<UsuarioResponse> obtenerActual(@AuthenticationPrincipal Long usuarioId) {
         return ResponseEntity.ok(usuarioService.obtenerActual(usuarioId));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UsuarioResponse> actualizarPropio(@AuthenticationPrincipal Long usuarioId,
+                                                             @Valid @RequestBody PerfilUpdateRequest request) {
+        return ResponseEntity.ok(usuarioService.actualizarPropio(usuarioId, request));
     }
 
     @GetMapping("/{id}")

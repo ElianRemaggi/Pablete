@@ -7,6 +7,7 @@ import com.instituto.siga.entity.EstadoAcademicoMateria;
 import com.instituto.siga.entity.EstadoMateria;
 import com.instituto.siga.entity.Materia;
 import com.instituto.siga.exception.ResourceNotFoundException;
+import com.instituto.siga.excel.HistorialExcelPath;
 import com.instituto.siga.excel.HistorialExcelWriter;
 import com.instituto.siga.repository.AlumnoRepository;
 import com.instituto.siga.repository.EstadoAcademicoMateriaRepository;
@@ -35,9 +36,7 @@ public class EstadoAcademicoServiceImpl implements EstadoAcademicoService {
     private final MateriaRepository materiaRepository;
     private final AuditoriaPublisher auditoriaPublisher;
     private final HistorialExcelWriter historialExcelWriter;
-
-    @Value("${app.historial.excel-path}")
-    private String excelPath;
+    private final HistorialExcelPath historialExcelPath;
 
     @Override
     @Transactional(readOnly = true)
@@ -89,22 +88,28 @@ public class EstadoAcademicoServiceImpl implements EstadoAcademicoService {
                 "EstadoAcademicoMateria", guardado.getId(),
                 Map.of("alumnoId", alumnoId, "materiaId", materiaId, "estado", nuevoEstado.name()));
 
-        sincronizarConExcel(alumno, materia, nuevoEstado, nota);
+        HistorialExcelWriter.Resultado excel = sincronizarConExcel(alumno, materia, nuevoEstado, nota);
 
         return new EstadoAcademicoResponse(alumnoId, materiaId, materia.getNombre(), nuevoEstado.name(), nota,
-                guardado.getFechaActualizacion());
+                guardado.getFechaActualizacion(), excel.escrito(), excel.mensaje());
     }
 
-    /** Escritura hacia el .xlsx configurado (frontend -> API -> backend -> XLSX): si el archivo
-     * no tiene fila para este alumno/materia (porque nunca se importaron desde ahi), el writer no
-     * hace nada y devuelve false — no rompe la actualizacion en base, que ya se confirmo arriba. */
-    private void sincronizarConExcel(Alumno alumno, Materia materia, EstadoMateria estado, Integer nota) {
+    /** Escritura hacia el .xlsx configurado (frontend -> API -> backend -> XLSX): si el archivo no tiene fila para
+     * este alumno/materia, esta bloqueado o no existe, el writer lo informa y no rompe la actualizacion en base,
+     * que ya se confirmo arriba. El resultado vuelve al cliente para que sepa si el Excel quedo al dia. La fecha
+     * solo se escribe al aprobar: es la fecha del final, no la de cualquier cambio de estado. */
+    private HistorialExcelWriter.Resultado sincronizarConExcel(Alumno alumno, Materia materia, EstadoMateria estado, Integer nota) {
         try {
             String dni = alumno.getUsuario().getDni();
-            historialExcelWriter.actualizarCelda(Path.of(excelPath), dni, materia.getNombre(),
-                    estado, nota, LocalDate.now());
+            LocalDate fecha = estado == EstadoMateria.APROBADA ? LocalDate.now() : null;
+            HistorialExcelWriter.Resultado resultado = historialExcelWriter.actualizarCelda(
+                    historialExcelPath.resolver(), dni, materia.getNombre(), estado, nota, fecha);
+            return resultado != null ? resultado
+                    : new HistorialExcelWriter.Resultado(HistorialExcelWriter.Resultado.Estado.ERROR, "Sin respuesta del escritor de Excel");
         } catch (Exception e) {
             log.warn("No se pudo sincronizar el cambio de estado academico con el Excel", e);
+            return new HistorialExcelWriter.Resultado(HistorialExcelWriter.Resultado.Estado.ERROR,
+                    "No se pudo sincronizar con el Excel: " + e.getMessage());
         }
     }
 }

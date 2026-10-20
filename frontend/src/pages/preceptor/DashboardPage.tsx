@@ -10,10 +10,13 @@ export function PreceptorDashboardPage() {
           <Stack spacing={2}>
             <Typography>
               Desde acá podés buscar alumnos por legajo, DNI o apellido, ver su ficha con estado académico, y
-              generar exportaciones en Excel de inscriptos por comisión o mesa.
+              consultar las mesas de examen final con sus inscriptos.
             </Typography>
             <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
-              <Button component={Link} to="/preceptor/busqueda-alumnos" variant="contained">
+              <Button component={Link} to="/preceptor/mesas-examen" variant="contained">
+                Mesas e inscriptos
+              </Button>
+              <Button component={Link} to="/preceptor/busqueda-alumnos" variant="outlined">
                 Buscar alumnos
               </Button>
               <Button component={Link} to="/preceptor/exportaciones" variant="outlined">

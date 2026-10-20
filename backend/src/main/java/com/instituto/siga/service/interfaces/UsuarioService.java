@@ -1,5 +1,7 @@
 package com.instituto.siga.service.interfaces;
 
+import com.instituto.siga.dto.request.PerfilUpdateRequest;
+import com.instituto.siga.dto.request.RegistroRequest;
 import com.instituto.siga.dto.request.UsuarioRequest;
 import com.instituto.siga.dto.request.UsuarioRolesRequest;
 import com.instituto.siga.dto.request.UsuarioUpdateRequest;
@@ -16,6 +18,11 @@ public interface UsuarioService {
     UsuarioResponse obtenerActual(Long usuarioId);
 
     UsuarioResponse crear(UsuarioRequest request);
+
+    /** Autoregistro publico: crea un Usuario con rol ALUMNO unicamente (y su fila de Alumno). */
+    UsuarioResponse registrarAlumno(RegistroRequest request);
+
+    UsuarioResponse actualizarPropio(Long usuarioId, PerfilUpdateRequest request);
 
     UsuarioResponse actualizar(Long id, UsuarioUpdateRequest request);
 

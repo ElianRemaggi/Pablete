@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -34,6 +35,7 @@ public class CertificadoFactory {
     private static final Font TITULO = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
     private static final Font TEXTO = FontFactory.getFont(FontFactory.HELVETICA, 12);
     private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter HORA = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter FECHA_HORA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private static final Color COLOR_INSTITUCIONAL = new Color(5, 172, 236);
@@ -109,16 +111,27 @@ public class CertificadoFactory {
                 "se encuentra inscripto/a a la cursada de la asignatura");
     }
 
-    /** docs/04 seccion PDF de inscripciones: comprobante de inscripcion a final. */
+    /** docs/04 seccion PDF de inscripciones: comprobante de inscripcion a final. Refleja el estado real:
+     * una inscripcion dada de baja (voluntaria o por mesa cancelada) se emite como tal, no como vigente. */
     public byte[] generarComprobanteFinal(Alumno alumno, String numeroComprobante, String carreraNombre,
-            String materiaNombre, LocalDate fechaMesa, String turno, String profesor, LocalDateTime fechaInscripcion) {
+            String materiaNombre, LocalDate fechaMesa, LocalTime hora, String turno, String periodo, String aula,
+            String modalidad, String profesor, String estadoMesa, String estadoInscripcion,
+            LocalDateTime fechaInscripcion) {
         List<String[]> filas = List.of(
                 new String[] { "Fecha de la mesa", fechaMesa.format(FECHA) },
+                new String[] { "Hora", hora == null ? null : hora.format(HORA) },
                 new String[] { "Turno", turno },
-                new String[] { "Profesor", profesor == null ? "—" : profesor });
-        return generarComprobante("Comprobante de Inscripción a Final", numeroComprobante, alumno, carreraNombre,
-                materiaNombre, filas, fechaInscripcion,
-                "se encuentra inscripto/a al examen final de la asignatura");
+                new String[] { "Período académico", periodo },
+                new String[] { "Aula / sede", aula },
+                new String[] { "Modalidad", modalidad },
+                new String[] { "Profesor", profesor },
+                new String[] { "Estado de la mesa", estadoMesa },
+                new String[] { "Estado de la inscripción", estadoInscripcion });
+        boolean baja = "BAJA".equals(estadoInscripcion);
+        return generarComprobante(baja ? "Comprobante de Inscripción a Final (DADA DE BAJA)" : "Comprobante de Inscripción a Final",
+                numeroComprobante, alumno, carreraNombre, materiaNombre, filas, fechaInscripcion,
+                baja ? "tuvo una inscripción, actualmente dada de baja, al examen final de la asignatura"
+                        : "se encuentra inscripto/a al examen final de la asignatura");
     }
 
     private byte[] generarComprobante(String tituloDocumento, String numeroComprobante, Alumno alumno,

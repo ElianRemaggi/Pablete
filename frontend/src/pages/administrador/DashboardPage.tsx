@@ -1,26 +1,26 @@
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Card, CardContent, CircularProgress, Grid, Stack, Typography } from '@mui/material';
+import { Alert, Button, Card, CardContent, CircularProgress, Grid, Stack, Typography } from '@mui/material';
+import { Link } from 'react-router-dom';
 import { listarCarreras } from '../../api/carrerasApi';
 import { listarMaterias } from '../../api/materiasApi';
 import { listarUsuarios } from '../../api/usuariosApi';
-import { listarComisiones } from '../../api/comisionesApi';
+import { listarMesasExamen } from '../../api/mesasExamenApi';
 
 export function AdministradorDashboardPage() {
   const carrerasQuery = useQuery({ queryKey: ['carreras'], queryFn: listarCarreras });
   const materiasQuery = useQuery({ queryKey: ['materias'], queryFn: listarMaterias });
   const usuariosQuery = useQuery({ queryKey: ['usuarios'], queryFn: listarUsuarios });
-  const comisionesQuery = useQuery({ queryKey: ['comisiones'], queryFn: listarComisiones });
+  const mesasQuery = useQuery({ queryKey: ['mesas-examen', 'dashboard'], queryFn: () => listarMesasExamen() });
 
   const cargando =
-    carrerasQuery.isLoading || materiasQuery.isLoading || usuariosQuery.isLoading || comisionesQuery.isLoading;
-  const conError =
-    carrerasQuery.isError || materiasQuery.isError || usuariosQuery.isError || comisionesQuery.isError;
+    carrerasQuery.isLoading || materiasQuery.isLoading || usuariosQuery.isLoading || mesasQuery.isLoading;
+  const conError = carrerasQuery.isError || materiasQuery.isError || usuariosQuery.isError || mesasQuery.isError;
 
   const tarjetas: Array<[string, number | undefined]> = [
     ['Carreras', carrerasQuery.data?.length],
     ['Materias', materiasQuery.data?.length],
     ['Usuarios', usuariosQuery.data?.length],
-    ['Comisiones', comisionesQuery.data?.length],
+    ['Mesas publicadas', mesasQuery.data?.filter((m) => m.estado === 'PUBLICADA').length],
   ];
 
   return (
@@ -44,6 +44,11 @@ export function AdministradorDashboardPage() {
           ))}
         </Grid>
       )}
+      <Stack direction="row" spacing={2}>
+        <Button component={Link} to="/administrador/mesas-examen" variant="contained">
+          Gestionar mesas de examen
+        </Button>
+      </Stack>
     </Stack>
   );
 }

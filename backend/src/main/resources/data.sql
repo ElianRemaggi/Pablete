@@ -70,9 +70,9 @@ INSERT INTO horario (comision_id, dia_semana, hora_inicio, hora_fin, aula) VALUE
 ((SELECT id FROM comision WHERE nombre = 'A' AND materia_id = (SELECT id FROM materia WHERE codigo = 'MAT101')),
  4, '18:00:00', '21:00:00', 'Aula 3');
 
-INSERT INTO mesa_examen (materia_id, fecha, turno, cupo_maximo, profesor) VALUES
-((SELECT id FROM materia WHERE codigo = 'MAT201'), DATEADD('DAY', 20, CURRENT_DATE), 'MANANA', 20, 'Laura Díaz'),
-((SELECT id FROM materia WHERE codigo = 'MAT202'), DATEADD('DAY', 35, CURRENT_DATE), 'TARDE', 20, 'Pablo Fontana');
+INSERT INTO mesa_examen (materia_id, fecha, turno, cupo_maximo, profesor, hora, periodo, aula, modalidad, estado) VALUES
+((SELECT id FROM materia WHERE codigo = 'MAT201'), DATEADD('DAY', 20, CURRENT_DATE), 'MANANA', 20, 'Laura Díaz', '09:00:00', '2026-2', 'Aula 2', 'PRESENCIAL', 'PUBLICADA'),
+((SELECT id FROM materia WHERE codigo = 'MAT202'), DATEADD('DAY', 35, CURRENT_DATE), 'TARDE', 20, 'Pablo Fontana', '16:00:00', '2026-2', 'Aula 4', 'PRESENCIAL', 'PUBLICADA');
 
 -- Estado academico de alumno1 por materia: aprobada, regular (habilita el final de MAT201) y cursando.
 -- fecha_actualizacion se completa a mano: en H2 (create-drop desde el mapeo JPA) la columna es

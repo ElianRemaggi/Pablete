@@ -59,3 +59,9 @@ export async function actualizarRolesUsuario(id: number, roles: string[]): Promi
   const { data } = await httpClient.put<UsuarioResponse>(`/usuarios/${id}/roles`, { roles });
   return data;
 }
+
+/** El propio usuario solo puede cambiar su email (DNI, nombre y roles los gestiona un administrador). */
+export async function actualizarPerfilPropio(email: string): Promise<UsuarioResponse> {
+  const { data } = await httpClient.put<UsuarioResponse>('/usuarios/me', { email });
+  return data;
+}

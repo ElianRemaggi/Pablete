@@ -19,6 +19,30 @@ import java.util.Map;
 public class HistorialExcelReader {
 
     public List<HistorialExcelRow> leer(Path archivo) throws IOException {
+        HistorialExcelLock.LOCK.lock();
+        try {
+            return leerSinLock(archivo);
+        } finally {
+            HistorialExcelLock.LOCK.unlock();
+        }
+    }
+
+    /** Problemas de estructura de los encabezados de todas las hojas (materias repetidas, columnas faltantes). */
+    public List<String> problemasDeEstructura(Path archivo) throws IOException {
+        HistorialExcelLock.LOCK.lock();
+        try (FileInputStream entrada = new FileInputStream(archivo.toFile());
+             Workbook workbook = WorkbookFactory.create(entrada)) {
+            List<String> problemas = new ArrayList<>();
+            for (Sheet sheet : workbook) {
+                problemas.addAll(HistorialExcelLayout.leer(sheet).getProblemasDeEstructura());
+            }
+            return problemas;
+        } finally {
+            HistorialExcelLock.LOCK.unlock();
+        }
+    }
+
+    private List<HistorialExcelRow> leerSinLock(Path archivo) throws IOException {
         List<HistorialExcelRow> filas = new ArrayList<>();
         try (FileInputStream entrada = new FileInputStream(archivo.toFile());
              Workbook workbook = WorkbookFactory.create(entrada)) {

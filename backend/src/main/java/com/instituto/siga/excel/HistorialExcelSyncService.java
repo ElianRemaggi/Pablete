@@ -12,7 +12,6 @@ import com.instituto.siga.repository.MateriaRepository;
 import com.instituto.siga.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,19 +26,33 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
  * Orquesta la sincronizacion .xlsx -> base de datos: lee el historial academico desde el Excel
  * configurado y hace upsert de EstadoAcademicoMateria para cada (alumno, materia) que reconoce.
  *
- * Reglas explicitas (documentadas en el diseno, no improvisadas ac�):
- * - Un DNI del Excel que no corresponde a ningun Alumno ya existente en el sistema NO se importa
- *   (no se crea un Usuario/Alumno nuevo: el archivo no trae email/legajo, que son obligatorios).
- * - Un nombre de materia que no matchea (exacto, sin el prefijo ordinal, case-insensitive) ninguna
- *   Materia ya cargada NO se importa (no se crea una Materia nueva: el alta es responsabilidad
- *   del ABM de administracion, no de este importador).
- * Ambos casos se cuentan y se listan como advertencias en la respuesta, nunca se ignoran en silencio.
+ * <h3>Fuente de verdad</h3>
+ * El Excel es la fuente del <b>historial academico pasado</b> (estado de cursada y nota final por materia).
+ * La base es la fuente de todo lo demas (usuarios, mesas, inscripciones) y de los cambios academicos hechos
+ * desde SIGA, que se reflejan de vuelta en el Excel (EstadoAcademicoServiceImpl.fijarEstado). Reglas:
+ * <ul>
+ *   <li>Registro nuevo en el Excel (no existe en la base): se crea.</li>
+ *   <li>Registro existente: se aplica lo que dice el Excel, salvo <b>conflicto</b>: si la base ya tiene la
+ *       materia APROBADA y el Excel dice otro estado, o una nota distinta, se conserva la base y se
+ *       registra el conflicto (nunca se degrada ni se pisa en silencio una aprobacion).</li>
+ *   <li>Celda en blanco o con marca de "sin dato" ({@code -----}): no borra nada de la base.</li>
+ *   <li>Nota ausente en el Excel: no borra la nota de la base.</li>
+ *   <li>Fila eliminada del Excel: no se borra nada de la base (el import solo agrega o actualiza).</li>
+ *   <li>Mismo (DNI, materia) repetido en varias hojas/filas: se aplican en orden de lectura; como el upsert
+ *       es por (alumno, materia), repetir la sincronizacion no genera duplicados.</li>
+ *   <li>Un DNI que no corresponde a ningun Alumno del sistema NO se importa (no se crea un Usuario: el
+ *       archivo no trae email/legajo, obligatorios). Una materia que no matchea (exacto, sin el prefijo
+ *       ordinal, case-insensitive) ninguna Materia cargada tampoco (el alta es del ABM de administracion).</li>
+ *   <li>Valores de estado que SIGA no modela (p. ej. EQUIVALENCIA, RECURSA) se informan y no se importan.</li>
+ * </ul>
+ * Todo lo que no se pueda sincronizar se cuenta y se lista como advertencia en la respuesta.
  */
 @Slf4j
 @Service
@@ -49,24 +62,25 @@ public class HistorialExcelSyncService {
     private static final int MAX_ADVERTENCIAS = 50;
 
     private final HistorialExcelReader reader;
+    private final HistorialExcelPath historialExcelPath;
+    private final HistorialExcelBootstrap bootstrap;
     private final AlumnoRepository alumnoRepository;
     private final MateriaRepository materiaRepository;
     private final EstadoAcademicoMateriaRepository estadoRepository;
     private final AuditoriaPublisher auditoriaPublisher;
-
-    @Value("${app.historial.excel-path}")
-    private String excelPath;
 
     /** El arranque del sistema nunca debe depender de que el Excel exista o tenga el formato
      * esperado: cualquier problema queda logueado, no tumba el contexto de Spring. */
     @EventListener(ApplicationReadyEvent.class)
     public void sincronizarAlIniciar() {
         try {
+            bootstrap.asegurarArchivo(historialExcelPath.resolver());
             HistorialImportResultResponse resultado = ejecutar();
-            log.info("Historial academico sincronizado desde Excel al iniciar: {} hoja(s), {} fila(s), "
-                            + "{} actualizado(s), {} alumno(s) no encontrado(s), {} materia(s) no encontrada(s)",
-                    resultado.hojasProcesadas(), resultado.filasLeidas(), resultado.actualizados(),
-                    resultado.alumnosNoEncontrados(), resultado.materiasNoEncontradas());
+            log.info("Historial academico sincronizado desde Excel al iniciar ({}): {} hoja(s), {} fila(s), "
+                            + "{} actualizado(s), {} alumno(s) no encontrado(s), {} materia(s) no encontrada(s), {} conflicto(s)",
+                    resultado.archivo(), resultado.hojasProcesadas(), resultado.filasLeidas(), resultado.actualizados(),
+                    resultado.alumnosNoEncontrados(), resultado.materiasNoEncontradas(), resultado.conflictos());
+            resultado.advertencias().stream().limit(10).forEach(a -> log.warn("Historial Excel: {}", a));
         } catch (Exception e) {
             log.error("No se pudo sincronizar el historial academico desde Excel al iniciar", e);
         }
@@ -85,17 +99,19 @@ public class HistorialExcelSyncService {
                         "filasLeidas", resultado.filasLeidas(),
                         "actualizados", resultado.actualizados(),
                         "alumnosNoEncontrados", resultado.alumnosNoEncontrados(),
-                        "materiasNoEncontradas", resultado.materiasNoEncontradas()));
+                        "materiasNoEncontradas", resultado.materiasNoEncontradas(),
+                        "conflictos", resultado.conflictos()));
         return resultado;
     }
 
     private HistorialImportResultResponse ejecutar() {
-        Path archivo = Path.of(excelPath);
+        Path archivo = historialExcelPath.resolver();
+        String ruta = archivo.toString();
         List<String> advertencias = new ArrayList<>();
 
         if (!Files.exists(archivo)) {
-            advertencias.add("No existe el archivo configurado: " + archivo.toAbsolutePath());
-            return new HistorialImportResultResponse(0, 0, 0, 0, 0, LocalDateTime.now(), advertencias);
+            advertencias.add("No existe el archivo configurado: " + archivo);
+            return new HistorialImportResultResponse(0, 0, 0, 0, 0, LocalDateTime.now(), advertencias, 0, ruta);
         }
 
         List<HistorialExcelRow> filas;
@@ -103,14 +119,23 @@ public class HistorialExcelSyncService {
             filas = reader.leer(archivo);
         } catch (Exception e) {
             log.error("No se pudo leer el historial academico desde {}", archivo, e);
-            advertencias.add("El archivo no se pudo leer (formato invalido o corrupto): " + e.getMessage());
-            return new HistorialImportResultResponse(0, 0, 0, 0, 0, LocalDateTime.now(), advertencias);
+            advertencias.add("El archivo no se pudo leer (formato invalido, corrupto o bloqueado por otro programa): "
+                    + e.getMessage());
+            return new HistorialImportResultResponse(0, 0, 0, 0, 0, LocalDateTime.now(), advertencias, 0, ruta);
+        }
+
+        try {
+            reader.problemasDeEstructura(archivo).forEach(p -> agregarAdvertencia(advertencias, p));
+        } catch (Exception e) {
+            log.warn("No se pudo revisar la estructura de los encabezados de {}", archivo, e);
         }
 
         Set<String> hojas = new HashSet<>();
+        Set<String> estadosNoReconocidos = new HashSet<>();
         int actualizados = 0;
         int alumnosNoEncontrados = 0;
         int materiasNoEncontradas = 0;
+        int conflictos = 0;
 
         for (HistorialExcelRow fila : filas) {
             hojas.add(fila.hoja());
@@ -126,6 +151,11 @@ public class HistorialExcelSyncService {
 
             for (HistorialExcelMateriaCelda celda : fila.materias()) {
                 EstadoMateria estado = resolverEstado(celda.estadoTexto());
+                if (estado == null && esValorConContenido(celda.estadoTexto())
+                        && estadosNoReconocidos.add(celda.estadoTexto().trim().toUpperCase(Locale.ROOT))) {
+                    agregarAdvertencia(advertencias, "Estado \"" + celda.estadoTexto().trim()
+                            + "\" no modelado por SIGA (hoja " + fila.hoja() + "): esas celdas no cambian el estado");
+                }
 
                 List<Materia> materias = materiaRepository.findByNombreIgnoreCase(celda.nombreMateria());
                 if (materias.size() != 1) {
@@ -138,22 +168,52 @@ public class HistorialExcelSyncService {
 
                 EstadoAcademicoMateria existente = estadoRepository
                         .findByAlumnoIdAndMateriaId(alumno.getUsuarioId(), materia.getId())
-                        .orElseGet(() -> EstadoAcademicoMateria.builder().alumno(alumno).materia(materia).build());
+                        .orElse(null);
 
-                if (estado != null) {
-                    existente.setEstado(estado);
-                } else if (existente.getEstado() == null) {
-                    existente.setEstado(EstadoMateria.PENDIENTE);
+                if (existente != null && hayConflicto(existente, estado, celda.nota())) {
+                    conflictos++;
+                    agregarAdvertencia(advertencias, "CONFLICTO DNI " + fila.dni() + " / \"" + celda.nombreMateria()
+                            + "\": la base tiene " + existente.getEstado() + " (nota " + existente.getNota()
+                            + ") y el Excel dice " + (estado == null ? "(sin estado)" : estado) + " (nota " + celda.nota()
+                            + "); se conserva la base");
+                    continue;
                 }
-                existente.setNota(celda.nota());
-                existente.setFechaActualizacion(LocalDateTime.now());
-                estadoRepository.save(existente);
-                actualizados++;
+
+                EstadoAcademicoMateria destino = existente != null ? existente
+                        : EstadoAcademicoMateria.builder().alumno(alumno).materia(materia).build();
+                boolean cambio = existente == null;
+
+                if (estado != null && estado != destino.getEstado()) {
+                    destino.setEstado(estado);
+                    cambio = true;
+                } else if (destino.getEstado() == null) {
+                    destino.setEstado(EstadoMateria.PENDIENTE);
+                }
+                if (celda.nota() != null && !Objects.equals(celda.nota(), destino.getNota())) {
+                    destino.setNota(celda.nota());
+                    cambio = true;
+                }
+                if (cambio) {
+                    destino.setFechaActualizacion(LocalDateTime.now());
+                    estadoRepository.save(destino);
+                    actualizados++;
+                }
             }
         }
 
         return new HistorialImportResultResponse(hojas.size(), filas.size(), actualizados,
-                alumnosNoEncontrados, materiasNoEncontradas, LocalDateTime.now(), advertencias);
+                alumnosNoEncontrados, materiasNoEncontradas, LocalDateTime.now(), advertencias, conflictos, ruta);
+    }
+
+    /** Una aprobacion ya registrada en la base no se degrada ni se reemplaza por otra cosa desde el Excel. */
+    private boolean hayConflicto(EstadoAcademicoMateria existente, EstadoMateria estadoExcel, Integer notaExcel) {
+        if (existente.getEstado() != EstadoMateria.APROBADA) {
+            return false;
+        }
+        boolean estadoContradice = estadoExcel != null && estadoExcel != EstadoMateria.APROBADA;
+        boolean notaContradice = notaExcel != null && existente.getNota() != null
+                && !notaExcel.equals(existente.getNota());
+        return estadoContradice || notaContradice;
     }
 
     private void agregarAdvertencia(List<String> advertencias, String mensaje) {
@@ -167,7 +227,12 @@ public class HistorialExcelSyncService {
         try {
             return EstadoMateria.valueOf(texto.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            return null; // valor no reconocido (ej. un texto libre que no es un EstadoMateria valido)
+            return null;
         }
+    }
+
+    /** "-----------" es la marca de "sin dato" del archivo original, no un estado desconocido. */
+    private boolean esValorConContenido(String texto) {
+        return texto != null && !texto.isBlank() && !texto.trim().matches("-+");
     }
 }

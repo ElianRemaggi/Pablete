@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -67,10 +68,15 @@ class InscripcionFinalControllerIT {
         String body = mockMvc.perform(post("/api/v1/mesas-examen")
                         .header("Authorization", "Bearer " + admin)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new MesaExamenRequest(materiaId, fecha, turno, cupo, null))))
+                        .content(objectMapper.writeValueAsString(new MesaExamenRequest(materiaId, fecha, turno, cupo, null, null, null, null, null, null, null))))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        return objectMapper.readTree(body).get("id").asLong();
+        long id = objectMapper.readTree(body).get("id").asLong();
+        // Las mesas nacen en BORRADOR: sin publicarla no admite inscripciones.
+        mockMvc.perform(patch("/api/v1/mesas-examen/" + id + "/publicar")
+                        .header("Authorization", "Bearer " + admin))
+                .andExpect(status().isOk());
+        return id;
     }
 
     private record AlumnoDeTest(long id, String token) {
@@ -131,9 +137,11 @@ class InscripcionFinalControllerIT {
                         .header("Authorization", "Bearer " + alumno.token()))
                 .andExpect(status().isNoContent());
 
+        // El historial se conserva: la inscripcion dada de baja sigue listada, con su estado real.
         mockMvc.perform(get("/api/v1/inscripciones-final/me").header("Authorization", "Bearer " + alumno.token()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isEmpty());
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].estado").value("BAJA"));
     }
 
     @Test

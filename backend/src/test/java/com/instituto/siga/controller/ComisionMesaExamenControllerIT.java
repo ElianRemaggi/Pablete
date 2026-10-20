@@ -106,7 +106,7 @@ class ComisionMesaExamenControllerIT {
     void admin_mesaConFechaPasada_devuelve422() throws Exception {
         String admin = tokenPara("30111222", "Admin1234");
         Long materiaId = crearMateria(admin, "MAT-CIT3");
-        MesaExamenRequest request = new MesaExamenRequest(materiaId, LocalDate.now().minusDays(1), Turno.MANANA, 20, null);
+        MesaExamenRequest request = new MesaExamenRequest(materiaId, LocalDate.now().minusDays(1), Turno.MANANA, 20, null, null, null, null, null, null, null);
 
         mockMvc.perform(post("/api/v1/mesas-examen")
                         .header("Authorization", "Bearer " + admin)
@@ -120,7 +120,7 @@ class ComisionMesaExamenControllerIT {
     void admin_mesaDuplicada_devuelve409() throws Exception {
         String admin = tokenPara("30111222", "Admin1234");
         Long materiaId = crearMateria(admin, "MAT-CIT4");
-        MesaExamenRequest request = new MesaExamenRequest(materiaId, LocalDate.now().plusDays(60), Turno.TARDE, 20, null);
+        MesaExamenRequest request = new MesaExamenRequest(materiaId, LocalDate.now().plusDays(60), Turno.TARDE, 20, null, null, null, null, null, null, null);
 
         mockMvc.perform(post("/api/v1/mesas-examen")
                         .header("Authorization", "Bearer " + admin)

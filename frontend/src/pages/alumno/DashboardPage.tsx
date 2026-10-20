@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Card, CardContent, CircularProgress, Grid, Stack, Typography } from '@mui/material';
+import { CURSADAS_HABILITADAS } from '../../config/features';
 import { Link } from 'react-router-dom';
 import { obtenerHistorialPropio } from '../../api/alumnosApi';
 import { obtenerConfiguracion } from '../../api/configuracionApi';
@@ -65,9 +66,11 @@ export function AlumnoDashboardPage() {
       {configQuery.data && (
         <Card>
           <CardContent>
-            <Typography>
-              Cierre de inscripción a cursadas: {formatearFecha(configQuery.data.fechaCierreCursadas)}
-            </Typography>
+            {CURSADAS_HABILITADAS && (
+              <Typography>
+                Cierre de inscripción a cursadas: {formatearFecha(configQuery.data.fechaCierreCursadas)}
+              </Typography>
+            )}
             <Typography>
               Cierre de inscripción a finales: {formatearFecha(configQuery.data.fechaCierreFinales)}
             </Typography>
@@ -76,14 +79,19 @@ export function AlumnoDashboardPage() {
       )}
 
       <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
-        <Button component={Link} to="/alumno/inscripcion-cursada" variant="contained">
-          Inscribirme a cursada
-        </Button>
+        {CURSADAS_HABILITADAS && (
+          <Button component={Link} to="/alumno/inscripcion-cursada" variant="contained">
+            Inscribirme a cursada
+          </Button>
+        )}
         <Button component={Link} to="/alumno/inscripcion-final" variant="contained">
-          Inscribirme a final
+          Exámenes finales disponibles
+        </Button>
+        <Button component={Link} to="/alumno/mis-inscripciones" variant="outlined">
+          Mis inscripciones
         </Button>
         <Button component={Link} to="/alumno/certificados" variant="outlined">
-          Descargar certificado
+          Comprobantes y certificados
         </Button>
       </Stack>
 

@@ -1,6 +1,8 @@
 package com.instituto.siga.service.impl;
 
 import com.instituto.siga.audit.AuditoriaPublisher;
+import com.instituto.siga.dto.request.PerfilUpdateRequest;
+import com.instituto.siga.dto.request.RegistroRequest;
 import com.instituto.siga.dto.request.UsuarioRequest;
 import com.instituto.siga.dto.request.UsuarioRolesRequest;
 import com.instituto.siga.dto.request.UsuarioUpdateRequest;
@@ -67,6 +69,32 @@ public class UsuarioServiceImpl implements UsuarioService {
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @Transactional
     public UsuarioResponse crear(UsuarioRequest request) {
+        return crearUsuario(request, "USUARIO_CREADO");
+    }
+
+    @Override
+    @Transactional
+    public UsuarioResponse registrarAlumno(RegistroRequest request) {
+        UsuarioRequest alta = new UsuarioRequest(request.dni().trim(), request.email().trim(), request.nombre().trim(),
+                request.apellido().trim(), request.password(), Set.of(ROL_ALUMNO));
+        return crearUsuario(alta, "USUARIO_REGISTRADO");
+    }
+
+    @Override
+    @Transactional
+    public UsuarioResponse actualizarPropio(Long usuarioId, PerfilUpdateRequest request) {
+        Usuario usuario = buscarOFallar(usuarioId);
+        String email = request.email().trim();
+        if (!email.equalsIgnoreCase(usuario.getEmail()) && usuarioRepository.existsByEmail(email)) {
+            throw new ConflictException("EMAIL_DUPLICADO", "Ya existe un usuario con ese email");
+        }
+        usuario.setEmail(email);
+        Usuario guardado = usuarioRepository.save(usuario);
+        auditoriaPublisher.publicar(usuarioId, "USUARIO_PERFIL_MODIFICADO", "Usuario", usuarioId, Map.of("email", email));
+        return usuarioMapper.toResponse(guardado);
+    }
+
+    private UsuarioResponse crearUsuario(UsuarioRequest request, String accionAuditoria) {
         if (usuarioRepository.existsByDni(request.dni())) {
             throw new ConflictException("DNI_DUPLICADO", "Ya existe un usuario con ese DNI");
         }
@@ -81,7 +109,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         Usuario guardado = usuarioRepository.save(usuario);
         asegurarAlumnoSiCorresponde(guardado);
-        auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "USUARIO_CREADO", "Usuario", guardado.getId(),
+        // usuarioActualId() es null en el autoregistro (no hay sesion): el evento queda sin actor, con el DNI en el detalle.
+        auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), accionAuditoria, "Usuario", guardado.getId(),
                 Map.of("dni", guardado.getDni(), "roles", request.roles()));
 
         return usuarioMapper.toResponse(guardado);

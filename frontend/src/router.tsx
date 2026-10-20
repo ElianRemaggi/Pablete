@@ -30,12 +30,23 @@ import { FichaAlumnoPage } from './pages/preceptor/FichaAlumnoPage';
 import { ExportacionesPage } from './pages/preceptor/ExportacionesPage';
 import { PreceptorCalendarioPage } from './pages/preceptor/CalendarioPage';
 import { AdministradorCalendarioPage } from './pages/administrador/CalendarioPage';
+import { FuncionalidadNoDisponiblePage } from './pages/FuncionalidadNoDisponiblePage';
+import { RegistroPage } from './pages/RegistroPage';
+import { MisInscripcionesPage } from './pages/alumno/MisInscripcionesPage';
+import { InscriptosMesaPage } from './pages/administrador/InscriptosMesaPage';
+import { MesasConsultaPage } from './pages/preceptor/MesasConsultaPage';
 import { StubPage } from './components/StubPage';
+import { CURSADAS_HABILITADAS } from './config/features';
 import { RootRedirect } from './RootRedirect';
+
+// Primera entrega: las rutas de cursadas siguen definidas (el codigo se conserva) pero muestran una pantalla
+// informativa mientras CURSADAS_HABILITADAS sea false. Ver config/features.ts.
+const noDisponible = (titulo: string) => <FuncionalidadNoDisponiblePage titulo={titulo} />;
 
 export const router = createBrowserRouter([
   { path: '/', element: <RootRedirect /> },
   { path: '/login', element: <LoginPage /> },
+  { path: '/registro', element: <RegistroPage /> },
   { path: '/403', element: <ForbiddenPage /> },
 
   {
@@ -48,8 +59,12 @@ export const router = createBrowserRouter([
           { path: '/alumno/perfil', element: <AlumnoPerfilPage /> },
           { path: '/alumno/calendario', element: <AlumnoCalendarioPage /> },
           { path: '/alumno/historial-academico', element: <HistorialAcademicoPage /> },
-          { path: '/alumno/inscripcion-cursada', element: <AlumnoInscripcionCursadaPage /> },
+          {
+            path: '/alumno/inscripcion-cursada',
+            element: CURSADAS_HABILITADAS ? <AlumnoInscripcionCursadaPage /> : noDisponible('Inscripción a cursada'),
+          },
           { path: '/alumno/inscripcion-final', element: <AlumnoInscripcionFinalPage /> },
+          { path: '/alumno/mis-inscripciones', element: <MisInscripcionesPage /> },
           { path: '/alumno/certificados', element: <CertificadosPage /> },
         ],
       },
@@ -63,6 +78,8 @@ export const router = createBrowserRouter([
         element: <PreceptorLayout />,
         children: [
           { path: '/preceptor/dashboard', element: <PreceptorDashboardPage /> },
+          { path: '/preceptor/mesas-examen', element: <MesasConsultaPage /> },
+          { path: '/preceptor/mesas-examen/:id/inscriptos', element: <InscriptosMesaPage volverA="/preceptor/mesas-examen" /> },
           { path: '/preceptor/busqueda-alumnos', element: <BusquedaAlumnosPage /> },
           { path: '/preceptor/alumno/:id', element: <FichaAlumnoPage /> },
           { path: '/preceptor/calendario', element: <PreceptorCalendarioPage /> },
@@ -86,15 +103,24 @@ export const router = createBrowserRouter([
           { path: '/administrador/carreras', element: <CarrerasPage /> },
           { path: '/administrador/planes-estudio', element: <PlanesEstudioPage /> },
           { path: '/administrador/materias', element: <MateriasPage /> },
-          { path: '/administrador/correlatividades', element: <CorrelatividadesPage /> },
+          {
+            path: '/administrador/correlatividades',
+            element: CURSADAS_HABILITADAS ? <CorrelatividadesPage /> : noDisponible('Correlatividades'),
+          },
           {
             path: '/administrador/horarios',
-            element: (
+            element: CURSADAS_HABILITADAS ? (
               <StubPage titulo="Horarios" detalle="Los horarios se gestionan dentro de cada Comisión." />
+            ) : (
+              noDisponible('Horarios')
             ),
           },
-          { path: '/administrador/comisiones', element: <ComisionesPage /> },
+          { path: '/administrador/comisiones', element: CURSADAS_HABILITADAS ? <ComisionesPage /> : noDisponible('Comisiones') },
           { path: '/administrador/mesas-examen', element: <MesasExamenPage /> },
+          {
+            path: '/administrador/mesas-examen/:id/inscriptos',
+            element: <InscriptosMesaPage volverA="/administrador/mesas-examen" />,
+          },
           { path: '/administrador/configuracion', element: <ConfiguracionPage /> },
           { path: '/administrador/auditoria', element: <AuditoriaPage /> },
           { path: '/administrador/reportes', element: <ReportesPage /> },

@@ -26,6 +26,10 @@ public interface InscripcionFinalRepository extends JpaRepository<InscripcionFin
 
     List<InscripcionFinal> findByMesaId(Long mesaId);
 
+    long countByMesaIdAndEstadoIn(Long mesaId, List<EstadoInscripcion> estados);
+
+    boolean existsByMesaId(Long mesaId);
+
     @Query("SELECT i FROM InscripcionFinal i WHERE i.id = :id AND i.alumno.usuarioId = :alumnoId")
     Optional<InscripcionFinal> findByIdAndAlumnoId(@Param("id") Long id, @Param("alumnoId") Long alumnoId);
 

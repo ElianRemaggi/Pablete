@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -93,10 +94,14 @@ class ExportacionControllerIT {
                         .header("Authorization", "Bearer " + admin)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new MesaExamenRequest(materiaId, LocalDate.now().plusDays(30), Turno.MANANA, 20, null))))
+                                new MesaExamenRequest(materiaId, LocalDate.now().plusDays(30), Turno.MANANA, 20, null, null, null, null, null, null, null))))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        return objectMapper.readTree(body).get("id").asLong();
+        long id = objectMapper.readTree(body).get("id").asLong();
+        // Las mesas nacen en BORRADOR: hay que publicarla para que admita inscripciones.
+        mockMvc.perform(patch("/api/v1/mesas-examen/" + id + "/publicar").header("Authorization", "Bearer " + admin))
+                .andExpect(status().isOk());
+        return id;
     }
 
     private void assertXlsxValido(byte[] datos) {

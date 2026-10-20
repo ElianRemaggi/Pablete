@@ -5,6 +5,7 @@ import com.instituto.siga.entity.ConfiguracionInstitucional;
 import com.instituto.siga.entity.MesaExamen;
 import com.instituto.siga.exception.BusinessException;
 import com.instituto.siga.repository.ConfiguracionInstitucionalRepository;
+import com.instituto.siga.validation.VentanaInscripcionMesa;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +31,7 @@ class ValidadorVentanaInscripcionFinalTest {
 
     @BeforeEach
     void setUp() {
-        validador = new ValidadorVentanaInscripcionFinal(configuracionRepository);
+        validador = new ValidadorVentanaInscripcionFinal(new VentanaInscripcionMesa(configuracionRepository));
         alumno = Alumno.builder().usuarioId(1L).build();
         mesa = MesaExamen.builder().id(1L).build();
     }

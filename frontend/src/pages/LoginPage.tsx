@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
-import { Alert, Box, Button, Paper, TextField, Typography } from '@mui/material';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { Alert, Box, Button, Link, Paper, TextField, Typography } from '@mui/material';
 import { useAuth } from '../auth/AuthContext';
 import { login as loginRequest } from '../api/authApi';
+import { extraerMensajeError } from '../utils/apiError';
 import type { Rol } from '../types/auth';
 import { COLOR_PRIMARIO, COLOR_PRIMARIO_OSCURO } from '../theme';
 import logoIset from '../assets/logo-iset.jpg';
@@ -26,6 +27,7 @@ const RUTA_POR_ROL: Record<Rol, string> = {
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const recienRegistrado = (useLocation().state as { registrado?: boolean } | null)?.registrado === true;
   const [error, setError] = useState<string | null>(null);
   const {
     register,
@@ -39,8 +41,8 @@ export function LoginPage() {
       const response = await loginRequest(values.dni, values.password);
       login(response);
       navigate(RUTA_POR_ROL[response.rol], { replace: true });
-    } catch {
-      setError('DNI o contraseña incorrectos');
+    } catch (err) {
+      setError(extraerMensajeError(err, 'No se pudo iniciar sesión. Verificá tu conexión e intentá de nuevo.'));
     }
   };
 
@@ -96,6 +98,11 @@ export function LoginPage() {
         <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 1 }}>
           Sistema Web de Gestión Académica
         </Typography>
+        {recienRegistrado && !error && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            Cuenta creada. Ingresá con tu DNI y la contraseña que elegiste.
+          </Alert>
+        )}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
@@ -124,6 +131,12 @@ export function LoginPage() {
             Ingresar
           </Button>
         </Box>
+        <Typography variant="body2" align="center" sx={{ mt: 2 }}>
+          ¿Sos alumno y no tenés cuenta?{' '}
+          <Link component={RouterLink} to="/registro">
+            Registrate
+          </Link>
+        </Typography>
       </Paper>
     </Box>
   );

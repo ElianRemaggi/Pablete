@@ -8,6 +8,7 @@ import com.instituto.siga.entity.EstadoInscripcion;
 import com.instituto.siga.entity.IntentoFinal;
 import com.instituto.siga.entity.InscripcionFinal;
 import com.instituto.siga.entity.MesaExamen;
+import com.instituto.siga.exception.BusinessException;
 import com.instituto.siga.exception.ConflictException;
 import com.instituto.siga.exception.ResourceNotFoundException;
 import com.instituto.siga.mapper.InscripcionFinalMapper;
@@ -51,7 +52,7 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
     @Transactional
     public InscripcionFinalResponse inscribir(Long alumnoId, InscripcionFinalRequest request) {
         Alumno alumno = buscarAlumnoOFallar(alumnoId);
-        MesaExamen mesa = buscarMesaOFallar(request.mesaId());
+        MesaExamen mesa = buscarMesaBloqueadaOFallar(request.mesaId());
 
         if (inscripcionFinalRepository.existsByAlumnoIdAndMesaIdAndEstadoIn(alumnoId, mesa.getId(), ACTIVOS)) {
             throw new ConflictException("INSCRIPCION_DUPLICADA", "Ya tiene una inscripción activa a esta mesa");
@@ -82,10 +83,11 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
     @Transactional
     public InscripcionFinalResponse modificar(Long alumnoId, Long inscripcionId, InscripcionFinalRequest request) {
         InscripcionFinal inscripcion = buscarPropiaOFallar(inscripcionId, alumnoId);
+        exigirActiva(inscripcion);
         // La mesa ACTUAL debe seguir teniendo margen de antelacion para poder tocarse (docs SS2).
         validadorAntelacionMinima.validar(inscripcion.getAlumno(), inscripcion.getMesa(), inscripcion);
 
-        MesaExamen nuevaMesa = buscarMesaOFallar(request.mesaId());
+        MesaExamen nuevaMesa = buscarMesaBloqueadaOFallar(request.mesaId());
 
         // Se re-corren todas las reglas salvo la ventana general de inscripcion (misma logica
         // que InscripcionCursadaServiceImpl.modificar): modificar no exige estar dentro de la
@@ -115,6 +117,7 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
     @Transactional
     public void darDeBaja(Long alumnoId, Long inscripcionId) {
         InscripcionFinal inscripcion = buscarPropiaOFallar(inscripcionId, alumnoId);
+        exigirActiva(inscripcion);
         validadorAntelacionMinima.validar(inscripcion.getAlumno(), inscripcion.getMesa(), inscripcion);
 
         inscripcion.setEstado(EstadoInscripcion.BAJA);
@@ -131,7 +134,8 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
     @PreAuthorize("hasRole('ALUMNO')")
     @Transactional(readOnly = true)
     public List<InscripcionFinalResponse> listarPropias(Long alumnoId) {
-        return inscripcionFinalRepository.findByAlumnoIdAndEstadoIn(alumnoId, ACTIVOS).stream()
+        return inscripcionFinalRepository.findByAlumnoId(alumnoId).stream()
+                .sorted(java.util.Comparator.comparing(InscripcionFinal::getFechaInscripcion).reversed())
                 .map(this::enriquecer)
                 .toList();
     }
@@ -185,6 +189,18 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
                 .orElseThrow(() -> new ResourceNotFoundException("Mesa de examen no encontrada: " + id));
     }
 
+    /** Lock pesimista sobre la mesa: serializa las inscripciones concurrentes para que el cupo no se pueda superar. */
+    private MesaExamen buscarMesaBloqueadaOFallar(Long id) {
+        return mesaExamenRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mesa de examen no encontrada: " + id));
+    }
+
+    private void exigirActiva(InscripcionFinal inscripcion) {
+        if (inscripcion.getEstado() == EstadoInscripcion.BAJA) {
+            throw new BusinessException("INSCRIPCION_DADA_DE_BAJA", "La inscripción ya fue dada de baja");
+        }
+    }
+
     private InscripcionFinal buscarPropiaOFallar(Long inscripcionId, Long alumnoId) {
         return inscripcionFinalRepository.findByIdAndAlumnoId(inscripcionId, alumnoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada: " + inscripcionId));
@@ -201,7 +217,9 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
                 .findFirst()
                 .map(Enum::name)
                 .orElse(null);
-        return new InscripcionFinalResponse(base.id(), base.materiaNombre(), base.fechaMesa(), base.turno(),
-                base.estado(), base.profesor(), carrera, resultado);
+        return new InscripcionFinalResponse(base.id(), base.mesaId(), base.materiaNombre(), base.fechaMesa(), base.turno(),
+                base.estado(), base.profesor(), carrera, resultado, base.hora(), base.periodo(), base.aula(),
+                base.modalidad(), base.mesaEstado(), base.fechaInscripcion(), base.alumnoId(), base.alumnoDni(),
+                base.alumnoNombre(), base.alumnoApellido(), base.alumnoLegajo());
     }
 }

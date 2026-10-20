@@ -13,7 +13,7 @@ export function ExportacionesPage() {
   const [apellido, setApellido] = useState('');
 
   const comisionesQuery = useQuery({ queryKey: ['comisiones'], queryFn: listarComisiones });
-  const mesasQuery = useQuery({ queryKey: ['mesas-examen'], queryFn: listarMesasExamen });
+  const mesasQuery = useQuery({ queryKey: ['mesas-examen'], queryFn: () => listarMesasExamen() });
 
   return (
     <Stack spacing={3}>

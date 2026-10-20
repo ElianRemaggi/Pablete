@@ -9,6 +9,7 @@ import com.instituto.siga.entity.EstadoAcademicoMateria;
 import com.instituto.siga.entity.InscripcionCursada;
 import com.instituto.siga.entity.InscripcionFinal;
 import com.instituto.siga.entity.Materia;
+import com.instituto.siga.entity.MesaExamen;
 import com.instituto.siga.entity.TipoCertificado;
 import com.instituto.siga.exception.ResourceNotFoundException;
 import com.instituto.siga.repository.AlumnoRepository;
@@ -138,9 +139,11 @@ public class CertificadoServiceImpl implements CertificadoService {
         Materia materia = inscripcion.getMesa().getMateria();
         String numero = "FIN-" + String.format("%06d", inscripcion.getId()) + "-" + inscripcion.getFechaInscripcion().getYear();
 
+        MesaExamen mesa = inscripcion.getMesa();
         byte[] pdf = certificadoFactory.generarComprobanteFinal(alumno, numero, resolverCarrera(materia),
-                materia.getNombre(), inscripcion.getMesa().getFecha(), inscripcion.getMesa().getTurno().name(),
-                inscripcion.getMesa().getProfesor(), inscripcion.getFechaInscripcion());
+                materia.getNombre(), mesa.getFecha(), mesa.getHora(), mesa.getTurno().name(), mesa.getPeriodo(),
+                mesa.getAula(), mesa.getModalidad() == null ? null : mesa.getModalidad().name(), mesa.getProfesor(),
+                mesa.getEstado().name(), inscripcion.getEstado().name(), inscripcion.getFechaInscripcion());
 
         registrar(alumno, TipoCertificado.COMPROBANTE_FINAL, pdf);
         return pdf;

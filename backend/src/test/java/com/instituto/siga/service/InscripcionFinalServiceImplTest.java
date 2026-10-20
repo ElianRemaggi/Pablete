@@ -82,7 +82,7 @@ class InscripcionFinalServiceImplTest {
                 .fecha(LocalDate.now().plusDays(30)).build();
 
         lenient().when(alumnoRepository.findById(1L)).thenReturn(Optional.of(alumno));
-        lenient().when(mesaExamenRepository.findById(1L)).thenReturn(Optional.of(mesa));
+        lenient().when(mesaExamenRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(mesa));
         lenient().when(intentoFinalRepository.contarActivosPorAlumnoYMateria(any(), any(), any())).thenReturn(0L);
     }
 
@@ -112,7 +112,7 @@ class InscripcionFinalServiceImplTest {
         when(inscripcionFinalRepository.existsByAlumnoIdAndMesaIdAndEstadoIn(any(), any(), any())).thenReturn(false);
         when(inscripcionFinalRepository.save(any(InscripcionFinal.class))).thenAnswer(inv -> inv.getArgument(0));
         when(inscripcionFinalMapper.toResponse(any(InscripcionFinal.class))).thenReturn(
-                new InscripcionFinalResponse(1L, "Materia", LocalDate.now().plusDays(30), "MANANA", "INSCRIPTO", null, null, null));
+                respuesta(1L, "INSCRIPTO"));
 
         InscripcionFinalResponse response = service.inscribir(1L, new InscripcionFinalRequest(1L));
 
@@ -148,7 +148,7 @@ class InscripcionFinalServiceImplTest {
         when(inscripcionFinalRepository.findByIdAndAlumnoId(5L, 1L)).thenReturn(Optional.of(propia));
         when(inscripcionFinalRepository.save(any(InscripcionFinal.class))).thenAnswer(inv -> inv.getArgument(0));
         when(inscripcionFinalMapper.toResponse(any(InscripcionFinal.class))).thenReturn(
-                new InscripcionFinalResponse(5L, "Materia", LocalDate.now().plusDays(30), "MANANA", "MODIFICADA", null, null, null));
+                respuesta(5L, "MODIFICADA"));
         when(intentoFinalRepository.findByInscripcionFinalId(5L)).thenReturn(List.of());
 
         service.modificar(1L, 5L, new InscripcionFinalRequest(1L));
@@ -163,7 +163,7 @@ class InscripcionFinalServiceImplTest {
                 .estado(EstadoInscripcion.BAJA).build();
         when(inscripcionFinalRepository.findByAlumnoId(1L)).thenReturn(List.of(propia));
         when(inscripcionFinalMapper.toResponse(propia)).thenReturn(
-                new InscripcionFinalResponse(5L, "Materia", LocalDate.now().plusDays(30), "MANANA", "BAJA", null, null, null));
+                respuesta(5L, "BAJA"));
 
         List<InscripcionFinalResponse> resultado = service.listarPorAlumno(1L);
 
@@ -183,5 +183,11 @@ class InscripcionFinalServiceImplTest {
 
         assertThat(propia.getEstado()).isEqualTo(EstadoInscripcion.BAJA);
         verify(auditoriaPublisher).publicar(eq(1L), eq("INSCRIPCION_FINAL_BAJA"), eq("InscripcionFinal"), any(), any());
+    }
+
+    private static InscripcionFinalResponse respuesta(long id, String estado) {
+        return new InscripcionFinalResponse(id, 1L, "Materia", LocalDate.now().plusDays(30), "MANANA", estado, null,
+                null, null, null, null, null, null, "PUBLICADA", LocalDateTime.now(), 1L, "30000000", "Nombre",
+                "Apellido", "LEG-1");
     }
 }

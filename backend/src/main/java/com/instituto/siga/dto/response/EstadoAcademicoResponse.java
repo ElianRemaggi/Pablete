@@ -8,5 +8,7 @@ public record EstadoAcademicoResponse(
         String materiaNombre,
         String estado,
         Integer nota,
-        LocalDateTime fechaActualizacion) {
+        LocalDateTime fechaActualizacion,
+        boolean excelSincronizado,
+        String excelMensaje) {
 }

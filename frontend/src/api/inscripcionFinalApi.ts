@@ -1,14 +1,28 @@
 import { httpClient } from './httpClient';
 
+export type EstadoInscripcion = 'INSCRIPTO' | 'MODIFICADA' | 'BAJA';
+
 export interface InscripcionFinalResponse {
   id: number;
+  mesaId: number;
   materiaNombre: string;
   fechaMesa: string;
   turno: string;
-  estado: string;
+  estado: EstadoInscripcion;
   profesor: string | null;
   carreraNombre: string | null;
   resultado: string | null;
+  hora: string | null;
+  periodo: string | null;
+  aula: string | null;
+  modalidad: string | null;
+  mesaEstado: string;
+  fechaInscripcion: string;
+  alumnoId: number;
+  alumnoDni: string;
+  alumnoNombre: string;
+  alumnoApellido: string;
+  alumnoLegajo: string;
 }
 
 export async function listarInscripcionesFinalPropias(): Promise<InscripcionFinalResponse[]> {
@@ -18,6 +32,11 @@ export async function listarInscripcionesFinalPropias(): Promise<InscripcionFina
 
 export async function listarInscripcionesFinalPorAlumno(alumnoId: number): Promise<InscripcionFinalResponse[]> {
   const { data } = await httpClient.get<InscripcionFinalResponse[]>(`/inscripciones-final/alumno/${alumnoId}`);
+  return data;
+}
+
+export async function listarInscriptosPorMesa(mesaId: number): Promise<InscripcionFinalResponse[]> {
+  const { data } = await httpClient.get<InscripcionFinalResponse[]>(`/inscripciones-final/mesa/${mesaId}`);
   return data;
 }
 

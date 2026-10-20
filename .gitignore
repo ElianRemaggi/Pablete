@@ -1,0 +1,4 @@
+# Historial academico en Excel (data/historial-academico.xlsx): contiene datos reales de alumnos (DNI, notas)
+# una vez cargado. Cada instalacion tiene el suyo y nunca se versiona; la plantilla vacia vive en
+# backend/src/main/resources/historial-academico-plantilla.xlsx y el backend la copia aca si falta.
+/data/
