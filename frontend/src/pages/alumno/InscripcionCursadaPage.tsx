@@ -78,6 +78,23 @@ export function AlumnoInscripcionCursadaPage() {
     { key: 'comisionNombre', header: 'Comisión', render: (i) => i.comisionNombre },
     { key: 'estado', header: 'Estado', render: (i) => <Chip label={i.estado} size="small" /> },
     {
+      key: 'resultadoCursada',
+      header: 'Cursada',
+      render: (i) => (
+        <Chip
+          size="small"
+          label={
+            i.resultadoCursada === 'APROBADA'
+              ? `Aprobada${i.notaCursada != null ? ` (${i.notaCursada})` : ''}`
+              : i.resultadoCursada === 'DESAPROBADA'
+                ? `Desaprobada${i.notaCursada != null ? ` (${i.notaCursada})` : ''}`
+                : 'Pendiente de evaluación'
+          }
+          color={i.resultadoCursada === 'APROBADA' ? 'success' : i.resultadoCursada === 'DESAPROBADA' ? 'error' : 'default'}
+        />
+      ),
+    },
+    {
       key: 'fecha',
       header: 'Fecha de inscripción',
       render: (i) => new Date(i.fechaInscripcion).toLocaleString('es-AR'),

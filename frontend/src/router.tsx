@@ -36,6 +36,8 @@ import { MisInscripcionesPage } from './pages/alumno/MisInscripcionesPage';
 import { InscriptosMesaPage } from './pages/administrador/InscriptosMesaPage';
 import { MesasConsultaPage } from './pages/preceptor/MesasConsultaPage';
 import { StubPage } from './components/StubPage';
+import { AcreditacionCursadasPage } from './pages/preceptor/AcreditacionCursadasPage';
+import { ImportacionHistorialPage } from './pages/preceptor/ImportacionHistorialPage';
 import { CURSADAS_HABILITADAS } from './config/features';
 import { RootRedirect } from './RootRedirect';
 
@@ -80,6 +82,8 @@ export const router = createBrowserRouter([
           { path: '/preceptor/dashboard', element: <PreceptorDashboardPage /> },
           { path: '/preceptor/mesas-examen', element: <MesasConsultaPage /> },
           { path: '/preceptor/mesas-examen/:id/inscriptos', element: <InscriptosMesaPage volverA="/preceptor/mesas-examen" /> },
+          { path: '/preceptor/acreditacion-cursadas', element: <AcreditacionCursadasPage /> },
+          { path: '/preceptor/importar-historial', element: <ImportacionHistorialPage /> },
           { path: '/preceptor/busqueda-alumnos', element: <BusquedaAlumnosPage /> },
           { path: '/preceptor/alumno/:id', element: <FichaAlumnoPage /> },
           { path: '/preceptor/calendario', element: <PreceptorCalendarioPage /> },
@@ -97,6 +101,8 @@ export const router = createBrowserRouter([
         children: [
           { path: '/administrador/dashboard', element: <AdministradorDashboardPage /> },
           { path: '/administrador/usuarios', element: <UsuariosPage /> },
+          { path: '/administrador/acreditacion-cursadas', element: <AcreditacionCursadasPage /> },
+          { path: '/administrador/importar-historial', element: <ImportacionHistorialPage /> },
           { path: '/administrador/busqueda-alumnos', element: <BusquedaAlumnosPage /> },
           { path: '/administrador/alumno/:id', element: <FichaAlumnoPage /> },
           { path: '/administrador/calendario', element: <AdministradorCalendarioPage /> },

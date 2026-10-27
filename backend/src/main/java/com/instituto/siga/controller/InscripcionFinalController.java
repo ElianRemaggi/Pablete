@@ -1,6 +1,7 @@
 package com.instituto.siga.controller;
 
 import com.instituto.siga.dto.request.InscripcionFinalRequest;
+import com.instituto.siga.dto.request.ResultadoFinalRequest;
 import com.instituto.siga.dto.response.InscripcionFinalResponse;
 import com.instituto.siga.service.interfaces.InscripcionFinalService;
 import jakarta.validation.Valid;
@@ -47,6 +48,12 @@ public class InscripcionFinalController {
     public ResponseEntity<Void> darDeBaja(@AuthenticationPrincipal Long alumnoId, @PathVariable Long id) {
         inscripcionFinalService.darDeBaja(alumnoId, id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/resultado")
+    public ResponseEntity<InscripcionFinalResponse> registrarResultado(@PathVariable Long id,
+                                                                        @Valid @RequestBody ResultadoFinalRequest request) {
+        return ResponseEntity.ok(inscripcionFinalService.registrarResultado(id, request));
     }
 
     @GetMapping("/mesa/{mesaId}")

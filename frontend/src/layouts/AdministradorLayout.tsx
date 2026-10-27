@@ -1,6 +1,8 @@
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import GroupIcon from '@mui/icons-material/Group';
 import SearchIcon from '@mui/icons-material/Search';
+import GradeIcon from '@mui/icons-material/Grade';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
@@ -19,7 +21,9 @@ import { CURSADAS_HABILITADAS } from '../config/features';
 const navItems: NavItem[] = [
   { label: 'Inicio', to: '/administrador/dashboard', icon: <DashboardIcon /> },
   { label: 'Mesas de examen', to: '/administrador/mesas-examen', icon: <EventNoteIcon /> },
+  { label: 'Acreditación de cursadas', to: '/administrador/acreditacion-cursadas', icon: <GradeIcon /> },
   { label: 'Búsqueda de alumnos', to: '/administrador/busqueda-alumnos', icon: <SearchIcon /> },
+  { label: 'Importar historial', to: '/administrador/importar-historial', icon: <UploadFileIcon /> },
   { label: 'Usuarios', to: '/administrador/usuarios', icon: <GroupIcon /> },
   { label: 'Calendario', to: '/administrador/calendario', icon: <CalendarMonthIcon /> },
   { label: 'Carreras', to: '/administrador/carreras', icon: <AccountBalanceIcon /> },

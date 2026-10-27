@@ -52,7 +52,8 @@ class UsuarioServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        usuarioService = new UsuarioServiceImpl(usuarioRepository, rolRepository, alumnoRepository, usuarioMapper, passwordEncoder, auditoriaPublisher);
+        usuarioService = new UsuarioServiceImpl(usuarioRepository, rolRepository, alumnoRepository, usuarioMapper, passwordEncoder, auditoriaPublisher,
+                org.mockito.Mockito.mock(com.instituto.siga.repository.RefreshTokenRepository.class));
         lenient().when(alumnoRepository.existsById(any())).thenReturn(false);
     }
 

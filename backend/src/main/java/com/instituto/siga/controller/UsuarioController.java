@@ -1,5 +1,6 @@
 package com.instituto.siga.controller;
 
+import com.instituto.siga.dto.request.ClaveNuevaRequest;
 import com.instituto.siga.dto.request.PerfilUpdateRequest;
 import com.instituto.siga.dto.request.UsuarioRequest;
 import com.instituto.siga.dto.request.UsuarioRolesRequest;
@@ -72,6 +73,12 @@ public class UsuarioController {
     @PatchMapping("/{id}/desactivar")
     public ResponseEntity<UsuarioResponse> desactivar(@PathVariable Long id) {
         return ResponseEntity.ok(usuarioService.desactivar(id));
+    }
+
+    @PutMapping("/{id}/clave")
+    public ResponseEntity<Void> crearNuevaClave(@PathVariable Long id, @Valid @RequestBody ClaveNuevaRequest request) {
+        usuarioService.crearNuevaClave(id, request);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/roles")

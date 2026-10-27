@@ -94,6 +94,61 @@ public class EstadoAcademicoServiceImpl implements EstadoAcademicoService {
                 guardado.getFechaActualizacion(), excel.escrito(), excel.mensaje());
     }
 
+    // Los 4 metodos siguientes los invocan servicios que ya verificaron el rol del personal; no tienen @PreAuthorize propio.
+
+    @Override
+    @Transactional
+    public void acreditarCursada(Long alumnoId, Long materiaId) {
+        EstadoAcademicoMateria estado = obtenerOCrear(alumnoId, materiaId);
+        if (estado.getEstado() == null || estado.getEstado() == EstadoMateria.PENDIENTE
+                || estado.getEstado() == EstadoMateria.CURSANDO || estado.getEstado() == EstadoMateria.LIBRE) {
+            aplicar(estado, EstadoMateria.REGULAR, estado.getNota());
+        }
+    }
+
+    @Override
+    @Transactional
+    public void revocarCursada(Long alumnoId, Long materiaId) {
+        EstadoAcademicoMateria estado = obtenerOCrear(alumnoId, materiaId);
+        if (estado.getEstado() == EstadoMateria.REGULAR) {
+            aplicar(estado, EstadoMateria.CURSANDO, estado.getNota());
+        }
+    }
+
+    @Override
+    @Transactional
+    public void acreditarFinal(Long alumnoId, Long materiaId, Integer nota) {
+        aplicar(obtenerOCrear(alumnoId, materiaId), EstadoMateria.APROBADA, nota);
+    }
+
+    @Override
+    @Transactional
+    public void revocarFinal(Long alumnoId, Long materiaId) {
+        EstadoAcademicoMateria estado = obtenerOCrear(alumnoId, materiaId);
+        if (estado.getEstado() == EstadoMateria.APROBADA) {
+            aplicar(estado, EstadoMateria.REGULAR, null);
+        }
+    }
+
+    private EstadoAcademicoMateria obtenerOCrear(Long alumnoId, Long materiaId) {
+        return estadoRepository.findByAlumnoIdAndMateriaId(alumnoId, materiaId).orElseGet(() -> {
+            Alumno alumno = alumnoRepository.findById(alumnoId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Alumno no encontrado: " + alumnoId));
+            Materia materia = materiaRepository.findById(materiaId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada: " + materiaId));
+            return EstadoAcademicoMateria.builder().alumno(alumno).materia(materia)
+                    .estado(EstadoMateria.PENDIENTE).fechaActualizacion(LocalDateTime.now()).build();
+        });
+    }
+
+    private void aplicar(EstadoAcademicoMateria estado, EstadoMateria nuevo, Integer nota) {
+        estado.setEstado(nuevo);
+        estado.setNota(nota);
+        estado.setFechaActualizacion(LocalDateTime.now());
+        estadoRepository.save(estado);
+        sincronizarConExcel(estado.getAlumno(), estado.getMateria(), nuevo, nota);
+    }
+
     /** Escritura hacia el .xlsx configurado (frontend -> API -> backend -> XLSX): si el archivo no tiene fila para
      * este alumno/materia, esta bloqueado o no existe, el writer lo informa y no rompe la actualizacion en base,
      * que ya se confirmo arriba. El resultado vuelve al cliente para que sepa si el Excel quedo al dia. La fecha

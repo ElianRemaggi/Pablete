@@ -6,6 +6,8 @@ import com.instituto.siga.dto.response.EstadoAcademicoResponse;
 import com.instituto.siga.dto.response.HistorialAcademicoResponse;
 import com.instituto.siga.service.interfaces.AlumnoService;
 import com.instituto.siga.service.interfaces.EstadoAcademicoService;
+import com.instituto.siga.service.interfaces.RequisitosAcademicosService;
+import com.instituto.siga.dto.response.HabilitacionFinalResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,7 @@ public class AlumnoController {
 
     private final EstadoAcademicoService estadoAcademicoService;
     private final AlumnoService alumnoService;
+    private final RequisitosAcademicosService requisitosService;
 
     @GetMapping("/me")
     public ResponseEntity<AlumnoResponse> obtenerPropio(@AuthenticationPrincipal Long usuarioId) {
@@ -67,6 +70,19 @@ public class AlumnoController {
     public ResponseEntity<List<HistorialAcademicoResponse>> materiasPendientesPropias(
             @AuthenticationPrincipal Long usuarioId) {
         return ResponseEntity.ok(alumnoService.materiasPendientesPropias(usuarioId));
+    }
+
+    /** Que le falta al alumno para inscribirse al final de la materia (correlativas de cursada y de final). */
+    @GetMapping("/me/materias/{materiaId}/habilitacion-final")
+    public ResponseEntity<HabilitacionFinalResponse> habilitacionFinalPropia(
+            @AuthenticationPrincipal Long usuarioId, @PathVariable Long materiaId) {
+        return ResponseEntity.ok(requisitosService.habilitacionFinalPropia(usuarioId, materiaId));
+    }
+
+    @GetMapping("/{id}/materias/{materiaId}/habilitacion-final")
+    public ResponseEntity<HabilitacionFinalResponse> habilitacionFinalDeAlumno(
+            @PathVariable Long id, @PathVariable Long materiaId) {
+        return ResponseEntity.ok(requisitosService.habilitacionFinalDeAlumno(id, materiaId));
     }
 
     @PutMapping("/{id}/estado-academico/{materiaId}")

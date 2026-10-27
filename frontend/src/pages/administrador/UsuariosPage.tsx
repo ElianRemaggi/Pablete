@@ -19,6 +19,8 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
+import KeyIcon from '@mui/icons-material/Key';
+import { extraerMensajeError } from '../../utils/apiError';
 import { DataTable, type DataTableColumn } from '../../components/DataTable';
 import { FormModal } from '../../components/FormModal';
 import { useSnackbar } from '../../components/SnackbarProvider';
@@ -26,6 +28,7 @@ import {
   actualizarRolesUsuario,
   actualizarUsuario,
   activarUsuario,
+  crearNuevaClaveUsuario,
   crearUsuario,
   desactivarUsuario,
   listarUsuarios,
@@ -117,6 +120,20 @@ export function UsuariosPage() {
     onError: () => notify('No se pudo actualizar el usuario', 'error'),
   });
 
+  const [usuarioClave, setUsuarioClave] = useState<UsuarioResponse | null>(null);
+  const [claveNueva, setClaveNueva] = useState('');
+  const claveValida = /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(claveNueva);
+
+  const nuevaClaveMutation = useMutation({
+    mutationFn: () => crearNuevaClaveUsuario((usuarioClave as UsuarioResponse).id, claveNueva),
+    onSuccess: () => {
+      notify(`Clave nueva creada para ${usuarioClave?.nombre} ${usuarioClave?.apellido}. Pasásela en persona.`, 'success');
+      setUsuarioClave(null);
+      setClaveNueva('');
+    },
+    onError: (err) => notify(extraerMensajeError(err, 'No se pudo crear la clave nueva'), 'error'),
+  });
+
   const toggleActivoMutation = useMutation({
     mutationFn: (usuario: UsuarioResponse) => (usuario.activo ? desactivarUsuario(usuario.id) : activarUsuario(usuario.id)),
     onSuccess: () => {
@@ -171,9 +188,14 @@ export function UsuariosPage() {
       key: 'acciones',
       header: 'Acciones',
       render: (u) => (
-        <IconButton onClick={() => abrirEdicion(u)} size="small">
-          <EditIcon fontSize="small" />
-        </IconButton>
+        <>
+          <IconButton onClick={() => abrirEdicion(u)} size="small" title="Editar">
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton onClick={() => { setClaveNueva(''); setUsuarioClave(u); }} size="small" title="Crear nueva clave">
+            <KeyIcon fontSize="small" />
+          </IconButton>
+        </>
       ),
     },
   ];
@@ -190,6 +212,31 @@ export function UsuariosPage() {
       {isLoading && <CircularProgress />}
       {isError && <Alert severity="error">No se pudieron cargar los usuarios.</Alert>}
       {data && <DataTable columns={columnas} rows={data} getRowKey={(u) => u.id} />}
+
+      <FormModal
+        open={!!usuarioClave}
+        titulo={`Crear nueva clave — ${usuarioClave?.nombre ?? ''} ${usuarioClave?.apellido ?? ''} (DNI ${usuarioClave?.dni ?? ''})`}
+        submitLabel="Crear clave nueva"
+        onClose={() => setUsuarioClave(null)}
+        onSubmit={() => claveValida && nuevaClaveMutation.mutate()}
+        submitting={nuevaClaveMutation.isPending || !claveValida}
+      >
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <Alert severity="info">
+            Reemplaza la clave olvidada: la anterior deja de funcionar y se cierran sus sesiones abiertas. Entregale la clave
+            nueva a la persona en forma personal.
+          </Alert>
+          <TextField
+            label="Clave nueva"
+            type="password"
+            fullWidth
+            value={claveNueva}
+            onChange={(e) => setClaveNueva(e.target.value)}
+            error={claveNueva !== '' && !claveValida}
+            helperText="Al menos 8 caracteres, una mayúscula y un número"
+          />
+        </Stack>
+      </FormModal>
 
       <FormModal
         open={modalAlta}

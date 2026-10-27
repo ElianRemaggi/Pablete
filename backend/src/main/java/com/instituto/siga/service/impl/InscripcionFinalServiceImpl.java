@@ -2,12 +2,15 @@ package com.instituto.siga.service.impl;
 
 import com.instituto.siga.audit.AuditoriaPublisher;
 import com.instituto.siga.dto.request.InscripcionFinalRequest;
+import com.instituto.siga.dto.request.ResultadoFinalRequest;
 import com.instituto.siga.dto.response.InscripcionFinalResponse;
 import com.instituto.siga.entity.Alumno;
 import com.instituto.siga.entity.EstadoInscripcion;
 import com.instituto.siga.entity.IntentoFinal;
 import com.instituto.siga.entity.InscripcionFinal;
 import com.instituto.siga.entity.MesaExamen;
+import com.instituto.siga.entity.EstadoMesa;
+import com.instituto.siga.entity.ResultadoFinal;
 import com.instituto.siga.exception.BusinessException;
 import com.instituto.siga.exception.ConflictException;
 import com.instituto.siga.exception.ResourceNotFoundException;
@@ -17,6 +20,8 @@ import com.instituto.siga.repository.InscripcionFinalRepository;
 import com.instituto.siga.repository.IntentoFinalRepository;
 import com.instituto.siga.repository.MesaExamenRepository;
 import com.instituto.siga.repository.PlanMateriaRepository;
+import com.instituto.siga.security.SecurityUtils;
+import com.instituto.siga.service.interfaces.EstadoAcademicoService;
 import com.instituto.siga.service.interfaces.InscripcionFinalService;
 import com.instituto.siga.validation.ValidadorAntelacionMinima;
 import com.instituto.siga.validation.ValidadorInscripcionFinal;
@@ -27,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +50,7 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
     private final PlanMateriaRepository planMateriaRepository;
     private final InscripcionFinalMapper inscripcionFinalMapper;
     private final AuditoriaPublisher auditoriaPublisher;
+    private final EstadoAcademicoService estadoAcademicoService;
     private final ValidadorAntelacionMinima validadorAntelacionMinima;
     private final List<ValidadorInscripcionFinal> validadores;
 
@@ -158,6 +165,63 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
                 .toList();
     }
 
+    @Override
+    @PreAuthorize("hasRole('PRECEPTOR') or hasRole('ADMINISTRADOR')")
+    @Transactional
+    public InscripcionFinalResponse registrarResultado(Long inscripcionId, ResultadoFinalRequest request) {
+        InscripcionFinal inscripcion = inscripcionFinalRepository.findById(inscripcionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada: " + inscripcionId));
+        exigirActiva(inscripcion);
+        EstadoMesa estadoMesa = inscripcion.getMesa().getEstado();
+        if (estadoMesa == EstadoMesa.BORRADOR || estadoMesa == EstadoMesa.CANCELADA) {
+            throw new BusinessException("MESA_NO_ACREDITABLE",
+                    "No se pueden registrar resultados en una mesa " + estadoMesa.name().toLowerCase());
+        }
+        ResultadoFinal resultado = request.resultado();
+        if (resultado == ResultadoFinal.AUSENTE && request.nota() != null) {
+            throw new BusinessException("NOTA_INVALIDA", "Un alumno ausente no lleva nota");
+        }
+        if (resultado != ResultadoFinal.AUSENTE && request.nota() == null) {
+            throw new BusinessException("NOTA_INVALIDA",
+                    "Para registrar el final como " + resultado.name().toLowerCase() + " hay que cargar una nota válida (1 a 10)");
+        }
+
+        IntentoFinal intento = intentoFinalRepository.findByInscripcionFinalId(inscripcion.getId()).stream().findFirst()
+                .orElseThrow(() -> new BusinessException("INTENTO_NO_ENCONTRADO",
+                        "La inscripción no tiene un intento asociado donde registrar el resultado"));
+        ResultadoFinal anterior = intento.getResultado();
+        Integer notaAnterior = intento.getNota();
+        Long usuarioId = SecurityUtils.usuarioActualId();
+
+        intento.setResultado(resultado);
+        intento.setNota(request.nota());
+        intento.setFechaResultado(LocalDateTime.now());
+        intento.setCalificadoPor(usuarioId);
+        intentoFinalRepository.save(intento);
+
+        Long alumnoId = inscripcion.getAlumno().getUsuarioId();
+        Long materiaId = inscripcion.getMesa().getMateria().getId();
+        if (resultado == ResultadoFinal.APROBADO) {
+            estadoAcademicoService.acreditarFinal(alumnoId, materiaId, request.nota());
+        } else if (anterior == ResultadoFinal.APROBADO
+                && !intentoFinalRepository.existeOtroIntentoAprobado(alumnoId, materiaId, intento.getId())) {
+            // Se corrigio un final aprobado: deja de cumplir como correlativa, sin tocar el historial.
+            estadoAcademicoService.revocarFinal(alumnoId, materiaId);
+        }
+
+        Map<String, Object> detalle = new HashMap<>();
+        detalle.put("alumnoId", alumnoId);
+        detalle.put("materiaId", materiaId);
+        detalle.put("mesaId", inscripcion.getMesa().getId());
+        detalle.put("resultadoAntes", anterior == null ? null : anterior.name());
+        detalle.put("resultadoDespues", resultado.name());
+        detalle.put("notaAntes", notaAnterior);
+        detalle.put("notaDespues", request.nota());
+        auditoriaPublisher.publicar(usuarioId, "FINAL_CALIFICADO", "InscripcionFinal", inscripcion.getId(), detalle);
+
+        return enriquecer(inscripcion);
+    }
+
     private void crearIntentoFinal(Alumno alumno, MesaExamen mesa, InscripcionFinal inscripcion) {
         long intentosPrevios = intentoFinalRepository.contarActivosPorAlumnoYMateria(
                 alumno.getUsuarioId(), mesa.getMateria().getId(), ACTIVOS);
@@ -211,6 +275,8 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
         InscripcionFinalResponse base = inscripcionFinalMapper.toResponse(entity);
         String carrera = planMateriaRepository.buscarCarreraVigentePorMateria(entity.getMesa().getMateria().getId())
                 .orElse(null);
+        Integer nota = intentoFinalRepository.findByInscripcionFinalId(entity.getId()).stream()
+                .map(IntentoFinal::getNota).filter(java.util.Objects::nonNull).findFirst().orElse(null);
         String resultado = intentoFinalRepository.findByInscripcionFinalId(entity.getId()).stream()
                 .map(IntentoFinal::getResultado)
                 .filter(java.util.Objects::nonNull)
@@ -220,6 +286,6 @@ public class InscripcionFinalServiceImpl implements InscripcionFinalService {
         return new InscripcionFinalResponse(base.id(), base.mesaId(), base.materiaNombre(), base.fechaMesa(), base.turno(),
                 base.estado(), base.profesor(), carrera, resultado, base.hora(), base.periodo(), base.aula(),
                 base.modalidad(), base.mesaEstado(), base.fechaInscripcion(), base.alumnoId(), base.alumnoDni(),
-                base.alumnoNombre(), base.alumnoApellido(), base.alumnoLegajo());
+                base.alumnoNombre(), base.alumnoApellido(), base.alumnoLegajo(), nota);
     }
 }

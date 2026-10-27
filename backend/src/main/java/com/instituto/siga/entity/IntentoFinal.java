@@ -59,4 +59,14 @@ public class IntentoFinal {
 
     @Column(nullable = false)
     private LocalDate fecha;
+
+    /** Nota numerica (1-10) del final rendido; null si no hay resultado o fue AUSENTE. */
+    @Column
+    private Integer nota;
+
+    @Column(name = "fecha_resultado")
+    private java.time.LocalDateTime fechaResultado;
+
+    @Column(name = "calificado_por")
+    private Long calificadoPor;
 }

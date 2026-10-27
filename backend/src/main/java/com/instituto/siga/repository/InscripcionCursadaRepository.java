@@ -33,4 +33,12 @@ public interface InscripcionCursadaRepository extends JpaRepository<InscripcionC
 
     @Query("SELECT i FROM InscripcionCursada i WHERE i.alumno.usuarioId = :alumnoId")
     List<InscripcionCursada> findByAlumnoId(@Param("alumnoId") Long alumnoId);
+
+    /** Otra inscripcion (no dada de baja) del mismo alumno y materia con la cursada aprobada: sostiene el estado REGULAR al corregir una nota. */
+    @Query("SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END FROM InscripcionCursada i "
+            + "WHERE i.alumno.usuarioId = :alumnoId AND i.comision.materia.id = :materiaId AND i.id <> :excluirId "
+            + "AND i.estado <> com.instituto.siga.entity.EstadoInscripcion.BAJA "
+            + "AND i.resultadoCursada = com.instituto.siga.entity.ResultadoCursada.APROBADA")
+    boolean existeOtraCursadaAprobada(@Param("alumnoId") Long alumnoId, @Param("materiaId") Long materiaId,
+                                      @Param("excluirId") Long excluirId);
 }

@@ -1,8 +1,7 @@
 /**
- * Primera entrega: solo examenes finales. Las cursadas anuales, la inscripcion a materias, las comisiones,
- * los horarios y las correlatividades (que solo gobiernan la inscripcion a cursadas) quedan conservadas en el
- * codigo pero fuera del menu y de la navegacion. Para reactivarlas en la segunda etapa alcanza con definir
- * VITE_CURSADAS_HABILITADAS=true (por ejemplo en .env.development.local) y reiniciar Vite; no hay que tocar codigo.
- * El backend conserva sus endpoints: esta bandera controla la interfaz de usuario.
+ * Inscripcion a cursadas, comisiones, horarios y correlatividades. Desde la entrega de acreditacion de cursadas
+ * estan ACTIVAS por defecto (el flujo inscripcion -> nota de cursada -> habilitacion del final depende de ellas).
+ * Para ocultarlas de la interfaz definir VITE_CURSADAS_HABILITADAS=false (por ejemplo en .env.development.local) y
+ * reiniciar Vite. El backend conserva sus endpoints en cualquier caso: esta bandera controla la interfaz.
  */
-export const CURSADAS_HABILITADAS = import.meta.env.VITE_CURSADAS_HABILITADAS === 'true';
+export const CURSADAS_HABILITADAS = import.meta.env.VITE_CURSADAS_HABILITADAS !== 'false';

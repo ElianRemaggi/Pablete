@@ -18,6 +18,38 @@ export interface HistorialAcademicoResponse {
   fechaActualizacion: string;
 }
 
+export interface RequisitoResponse {
+  materiaRequeridaId: number;
+  materiaRequeridaNombre: string;
+  tipoRequisito: string;
+  cumplido: boolean;
+  descripcion: string;
+}
+
+export interface HabilitacionFinalResponse {
+  materiaId: number;
+  materiaNombre: string;
+  cursadaAprobada: boolean;
+  habilitado: boolean;
+  correlatividades: RequisitoResponse[];
+  pendientes: string[];
+}
+
+export async function obtenerHabilitacionFinalPropia(materiaId: number): Promise<HabilitacionFinalResponse> {
+  const { data } = await httpClient.get<HabilitacionFinalResponse>(`/alumnos/me/materias/${materiaId}/habilitacion-final`);
+  return data;
+}
+
+export async function obtenerHabilitacionFinalDeAlumno(
+  alumnoId: number,
+  materiaId: number,
+): Promise<HabilitacionFinalResponse> {
+  const { data } = await httpClient.get<HabilitacionFinalResponse>(
+    `/alumnos/${alumnoId}/materias/${materiaId}/habilitacion-final`,
+  );
+  return data;
+}
+
 export async function obtenerAlumnoPropio(): Promise<AlumnoResponse> {
   const { data } = await httpClient.get<AlumnoResponse>('/alumnos/me');
   return data;

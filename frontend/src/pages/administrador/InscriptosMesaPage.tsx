@@ -1,4 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { CalificacionDialog, type OpcionResultado } from '../../components/CalificacionDialog';
+import { useSnackbar } from '../../components/SnackbarProvider';
 import { Link, useParams } from 'react-router-dom';
 import { Alert, Button, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -8,13 +11,41 @@ import { FileDownloadButton } from '../../components/FileDownloadButton';
 import { extraerMensajeError } from '../../utils/apiError';
 import { ETIQUETA_TURNO, formatearFecha, formatearFechaHora, formatearHora } from '../../utils/fechas';
 import { obtenerMesaExamen } from '../../api/mesasExamenApi';
-import { listarInscriptosPorMesa, type InscripcionFinalResponse } from '../../api/inscripcionFinalApi';
+import {
+  listarInscriptosPorMesa,
+  registrarResultadoFinal,
+  type InscripcionFinalResponse,
+  type ResultadoFinal,
+} from '../../api/inscripcionFinalApi';
+
+const OPCIONES_FINAL: OpcionResultado[] = [
+  { value: 'APROBADO', label: 'Aprobado', conNota: true },
+  { value: 'DESAPROBADO', label: 'Desaprobado', conNota: true },
+  { value: 'AUSENTE', label: 'Ausente', conNota: false },
+];
 
 /** Listado de inscriptos de una mesa. Lo comparten administrador y preceptor: el backend autoriza a ambos
  * (InscripcionFinalService.listarPorMesa); `volverA` solo cambia el enlace de regreso segun el panel. */
 export function InscriptosMesaPage({ volverA }: { volverA: string }) {
   const { id } = useParams();
   const mesaId = Number(id);
+  const queryClient = useQueryClient();
+  const { notify } = useSnackbar();
+  const [editando, setEditando] = useState<InscripcionFinalResponse | null>(null);
+
+  const guardar = useMutation({
+    mutationFn: (v: { id: number; resultado: ResultadoFinal; nota: number | null }) =>
+      registrarResultadoFinal(v.id, v.resultado, v.nota),
+    onSuccess: (r) => {
+      notify(
+        `Resultado guardado: ${r.alumnoApellido}, ${r.alumnoNombre} — ${r.resultado}` + (r.nota != null ? ` (${r.nota})` : ''),
+        'success',
+      );
+      queryClient.invalidateQueries({ queryKey: ['inscripciones-final'] });
+      setEditando(null);
+    },
+    onError: (err) => notify(extraerMensajeError(err, 'No se pudo guardar el resultado'), 'error'),
+  });
 
   const mesaQuery = useQuery({ queryKey: ['mesas-examen', mesaId], queryFn: () => obtenerMesaExamen(mesaId) });
   const inscriptosQuery = useQuery({
@@ -31,6 +62,25 @@ export function InscriptosMesaPage({ volverA }: { volverA: string }) {
     { key: 'legajo', header: 'Legajo', render: (i) => i.alumnoLegajo },
     { key: 'fecha', header: 'Inscripto el', render: (i) => formatearFechaHora(i.fechaInscripcion) },
     { key: 'estado', header: 'Estado', render: (i) => <EstadoChip estado={i.estado} /> },
+    {
+      key: 'resultado',
+      header: 'Resultado del final',
+      render: (i) => (i.resultado ? <EstadoChip estado={i.resultado} /> : 'Sin resultado'),
+    },
+    { key: 'nota', header: 'Nota', render: (i) => i.nota ?? '—' },
+    {
+      key: 'acreditar',
+      header: 'Acreditación',
+      render: (i) => (
+        <Button
+          size="small"
+          disabled={i.estado === 'BAJA' || mesa?.estado === 'BORRADOR' || mesa?.estado === 'CANCELADA'}
+          onClick={() => setEditando(i)}
+        >
+          {i.resultado ? 'Corregir resultado' : 'Registrar resultado'}
+        </Button>
+      ),
+    },
     {
       key: 'comprobante',
       header: 'Comprobante',
@@ -103,6 +153,24 @@ export function InscriptosMesaPage({ volverA }: { volverA: string }) {
           <DataTable columns={columnas} rows={inscriptosQuery.data} getRowKey={(i) => i.id} />
         </>
       )}
+      <CalificacionDialog
+        open={!!editando}
+        titulo="Resultado del final"
+        descripcion={
+          editando
+            ? `${editando.alumnoApellido}, ${editando.alumnoNombre} (DNI ${editando.alumnoDni}) — ${editando.materiaNombre}, ` +
+              `mesa del ${formatearFecha(editando.fechaMesa)}.`
+            : ''
+        }
+        opciones={OPCIONES_FINAL}
+        resultadoInicial={editando?.resultado ?? 'APROBADO'}
+        notaInicial={editando?.nota ?? null}
+        submitting={guardar.isPending}
+        onClose={() => setEditando(null)}
+        onSubmit={(resultado, nota) =>
+          editando && guardar.mutate({ id: editando.id, resultado: resultado as ResultadoFinal, nota })
+        }
+      />
     </Stack>
   );
 }

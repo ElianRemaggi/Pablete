@@ -75,7 +75,7 @@ class InscripcionFinalServiceImplTest {
     void setUp() {
         service = new InscripcionFinalServiceImpl(inscripcionFinalRepository, intentoFinalRepository, alumnoRepository,
                 mesaExamenRepository, planMateriaRepository, inscripcionFinalMapper, auditoriaPublisher,
-                validadorAntelacionMinima, List.of(otroValidador, validadorAntelacionMinima, validadorVentana));
+                org.mockito.Mockito.mock(com.instituto.siga.service.interfaces.EstadoAcademicoService.class), validadorAntelacionMinima, List.of(otroValidador, validadorAntelacionMinima, validadorVentana));
 
         alumno = Alumno.builder().usuarioId(1L).build();
         mesa = MesaExamen.builder().id(1L).materia(Materia.builder().id(1L).nombre("Materia").build())
@@ -188,6 +188,6 @@ class InscripcionFinalServiceImplTest {
     private static InscripcionFinalResponse respuesta(long id, String estado) {
         return new InscripcionFinalResponse(id, 1L, "Materia", LocalDate.now().plusDays(30), "MANANA", estado, null,
                 null, null, null, null, null, null, "PUBLICADA", LocalDateTime.now(), 1L, "30000000", "Nombre",
-                "Apellido", "LEG-1");
+                "Apellido", "LEG-1", null);
     }
 }

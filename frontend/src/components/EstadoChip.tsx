@@ -10,6 +10,12 @@ const COLORES: Record<string, Color> = {
   INSCRIPTO: 'success',
   MODIFICADA: 'info',
   BAJA: 'error',
+  PENDIENTE: 'default',
+  APROBADA: 'success',
+  DESAPROBADA: 'error',
+  APROBADO: 'success',
+  DESAPROBADO: 'error',
+  AUSENTE: 'warning',
 };
 
 const ETIQUETAS: Record<string, string> = {
@@ -20,6 +26,12 @@ const ETIQUETAS: Record<string, string> = {
   INSCRIPTO: 'Inscripto',
   MODIFICADA: 'Modificada',
   BAJA: 'Dada de baja',
+  PENDIENTE: 'Pendiente',
+  APROBADA: 'Aprobada',
+  DESAPROBADA: 'Desaprobada',
+  APROBADO: 'Aprobado',
+  DESAPROBADO: 'Desaprobado',
+  AUSENTE: 'Ausente',
 };
 
 /** Chip de estado para mesas de examen y para inscripciones a finales. */

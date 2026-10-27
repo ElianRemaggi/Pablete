@@ -1,6 +1,7 @@
 package com.instituto.siga.service.impl;
 
 import com.instituto.siga.audit.AuditoriaPublisher;
+import com.instituto.siga.dto.request.CalificacionCursadaRequest;
 import com.instituto.siga.dto.request.InscripcionCursadaRequest;
 import com.instituto.siga.dto.response.InscripcionCursadaResponse;
 import com.instituto.siga.entity.Alumno;
@@ -8,6 +9,7 @@ import com.instituto.siga.entity.Comision;
 import com.instituto.siga.entity.ConfiguracionInstitucional;
 import com.instituto.siga.entity.EstadoInscripcion;
 import com.instituto.siga.entity.InscripcionCursada;
+import com.instituto.siga.entity.ResultadoCursada;
 import com.instituto.siga.exception.BusinessException;
 import com.instituto.siga.exception.ConflictException;
 import com.instituto.siga.exception.ResourceNotFoundException;
@@ -17,6 +19,7 @@ import com.instituto.siga.repository.ComisionRepository;
 import com.instituto.siga.repository.ConfiguracionInstitucionalRepository;
 import com.instituto.siga.repository.InscripcionCursadaRepository;
 import com.instituto.siga.repository.PlanMateriaRepository;
+import com.instituto.siga.security.SecurityUtils;
 import com.instituto.siga.service.interfaces.EstadoAcademicoService;
 import com.instituto.siga.service.interfaces.InscripcionCursadaService;
 import com.instituto.siga.validation.ValidadorInscripcionCursada;
@@ -27,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -151,6 +155,59 @@ public class InscripcionCursadaServiceImpl implements InscripcionCursadaService 
                 .toList();
     }
 
+    @Override
+    @PreAuthorize("hasRole('PRECEPTOR') or hasRole('ADMINISTRADOR')")
+    @Transactional
+    public InscripcionCursadaResponse calificar(Long inscripcionId, CalificacionCursadaRequest request) {
+        InscripcionCursada inscripcion = inscripcionCursadaRepository.findById(inscripcionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada: " + inscripcionId));
+        if (inscripcion.getEstado() == EstadoInscripcion.BAJA) {
+            throw new BusinessException("INSCRIPCION_DADA_DE_BAJA",
+                    "No se puede calificar una inscripción dada de baja");
+        }
+        ResultadoCursada resultado = request.resultado();
+        if (resultado == ResultadoCursada.PENDIENTE && request.nota() != null) {
+            throw new BusinessException("NOTA_INVALIDA", "Una cursada pendiente no lleva nota");
+        }
+        if (resultado != ResultadoCursada.PENDIENTE && request.nota() == null) {
+            throw new BusinessException("NOTA_INVALIDA",
+                    "Para dejar la cursada " + resultado.name().toLowerCase() + " hay que cargar una nota válida (1 a 10)");
+        }
+
+        ResultadoCursada anterior = inscripcion.getResultadoCursada() == null
+                ? ResultadoCursada.PENDIENTE : inscripcion.getResultadoCursada();
+        Integer notaAnterior = inscripcion.getNotaCursada();
+        Long usuarioId = SecurityUtils.usuarioActualId();
+
+        inscripcion.setResultadoCursada(resultado);
+        inscripcion.setNotaCursada(request.nota());
+        inscripcion.setFechaCalificacion(LocalDateTime.now());
+        inscripcion.setCalificadoPor(usuarioId);
+        InscripcionCursada guardada = inscripcionCursadaRepository.save(inscripcion);
+
+        Long alumnoId = guardada.getAlumno().getUsuarioId();
+        Long materiaId = guardada.getComision().getMateria().getId();
+        if (resultado == ResultadoCursada.APROBADA) {
+            estadoAcademicoService.acreditarCursada(alumnoId, materiaId);
+        } else if (anterior == ResultadoCursada.APROBADA
+                && !inscripcionCursadaRepository.existeOtraCursadaAprobada(alumnoId, materiaId, guardada.getId())) {
+            // La cursada deja de estar aprobada: se retira la regularidad, sin tocar un final ya aprobado.
+            estadoAcademicoService.revocarCursada(alumnoId, materiaId);
+        }
+
+        Map<String, Object> detalle = new HashMap<>();
+        detalle.put("alumnoId", alumnoId);
+        detalle.put("materiaId", materiaId);
+        detalle.put("comisionId", guardada.getComision().getId());
+        detalle.put("resultadoAntes", anterior.name());
+        detalle.put("resultadoDespues", resultado.name());
+        detalle.put("notaAntes", notaAnterior);
+        detalle.put("notaDespues", request.nota());
+        auditoriaPublisher.publicar(usuarioId, "CURSADA_CALIFICADA", "InscripcionCursada", guardada.getId(), detalle);
+
+        return enriquecer(guardada);
+    }
+
     private Alumno buscarAlumnoOFallar(Long id) {
         return alumnoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Alumno no encontrado: " + id));
@@ -182,6 +239,8 @@ public class InscripcionCursadaServiceImpl implements InscripcionCursadaService 
         String carrera = planMateriaRepository.buscarCarreraVigentePorMateria(entity.getComision().getMateria().getId())
                 .orElse(null);
         return new InscripcionCursadaResponse(base.id(), base.materiaNombre(), base.comisionNombre(), base.estado(),
-                base.fechaInscripcion(), base.profesor(), carrera, base.horarios());
+                base.fechaInscripcion(), base.profesor(), carrera, base.horarios(), base.materiaId(), base.comisionId(),
+                base.periodo(), base.alumnoId(), base.alumnoDni(), base.alumnoNombre(), base.alumnoApellido(),
+                base.alumnoLegajo(), base.notaCursada(), base.resultadoCursada(), base.fechaCalificacion());
     }
 }

@@ -1,5 +1,6 @@
 package com.instituto.siga.service.interfaces;
 
+import com.instituto.siga.dto.request.ClaveNuevaRequest;
 import com.instituto.siga.dto.request.PerfilUpdateRequest;
 import com.instituto.siga.dto.request.RegistroRequest;
 import com.instituto.siga.dto.request.UsuarioRequest;
@@ -31,4 +32,7 @@ public interface UsuarioService {
     UsuarioResponse desactivar(Long id);
 
     UsuarioResponse actualizarRoles(Long id, UsuarioRolesRequest request);
+
+    /** El administrador crea una clave nueva para el usuario (recuperacion de clave olvidada); cierra sus sesiones. */
+    void crearNuevaClave(Long id, ClaveNuevaRequest request);
 }

@@ -55,6 +55,11 @@ export async function desactivarUsuario(id: number): Promise<UsuarioResponse> {
   return data;
 }
 
+/** Solo ADMINISTRADOR: define una clave nueva para el usuario (recuperacion de clave olvidada) y cierra sus sesiones. */
+export async function crearNuevaClaveUsuario(id: number, nuevaClave: string): Promise<void> {
+  await httpClient.put(`/usuarios/${id}/clave`, { nuevaClave });
+}
+
 export async function actualizarRolesUsuario(id: number, roles: string[]): Promise<UsuarioResponse> {
   const { data } = await httpClient.put<UsuarioResponse>(`/usuarios/${id}/roles`, { roles });
   return data;

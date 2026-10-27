@@ -1,5 +1,6 @@
 package com.instituto.siga.service.interfaces;
 
+import com.instituto.siga.dto.request.CalificacionCursadaRequest;
 import com.instituto.siga.dto.request.InscripcionCursadaRequest;
 import com.instituto.siga.dto.response.InscripcionCursadaResponse;
 
@@ -18,4 +19,7 @@ public interface InscripcionCursadaService {
     List<InscripcionCursadaResponse> listarPorComision(Long comisionId);
 
     List<InscripcionCursadaResponse> listarPorAlumno(Long alumnoId);
+
+    /** Registra nota y resultado de la cursada (personal autorizado) y actualiza el estado academico. */
+    InscripcionCursadaResponse calificar(Long inscripcionId, CalificacionCursadaRequest request);
 }

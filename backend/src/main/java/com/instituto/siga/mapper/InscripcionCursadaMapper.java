@@ -12,6 +12,15 @@ public interface InscripcionCursadaMapper {
     @Mapping(source = "comision.nombre", target = "comisionNombre")
     @Mapping(source = "comision.profesor", target = "profesor")
     @Mapping(source = "comision.horarios", target = "horarios")
+    @Mapping(source = "comision.materia.id", target = "materiaId")
+    @Mapping(source = "comision.id", target = "comisionId")
+    @Mapping(source = "comision.periodoLectivo", target = "periodo")
+    @Mapping(source = "alumno.usuarioId", target = "alumnoId")
+    @Mapping(source = "alumno.usuario.dni", target = "alumnoDni")
+    @Mapping(source = "alumno.usuario.nombre", target = "alumnoNombre")
+    @Mapping(source = "alumno.usuario.apellido", target = "alumnoApellido")
+    @Mapping(source = "alumno.legajo", target = "alumnoLegajo")
+    @Mapping(source = "resultadoCursada", target = "resultadoCursada", defaultValue = "PENDIENTE")
     @Mapping(target = "carreraNombre", ignore = true)
     InscripcionCursadaResponse toResponse(InscripcionCursada entity);
 }

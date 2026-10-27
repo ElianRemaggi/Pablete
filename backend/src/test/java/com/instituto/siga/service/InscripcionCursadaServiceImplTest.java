@@ -114,7 +114,7 @@ class InscripcionCursadaServiceImplTest {
         when(inscripcionCursadaRepository.existsByAlumnoIdAndComisionIdAndEstadoIn(any(), any(), any())).thenReturn(false);
         when(inscripcionCursadaRepository.save(any(InscripcionCursada.class))).thenAnswer(inv -> inv.getArgument(0));
         when(inscripcionCursadaMapper.toResponse(any(InscripcionCursada.class))).thenReturn(
-                new InscripcionCursadaResponse(1L, "Materia", "A", "INSCRIPTO", LocalDateTime.now(), null, null, List.of()));
+                new InscripcionCursadaResponse(1L, "Materia", "A", "INSCRIPTO", LocalDateTime.now(), null, null, List.of(), 1L, 1L, "2026", 1L, "1", "N", "A", "L", null, "PENDIENTE", null));
 
         InscripcionCursadaResponse response = service.inscribir(1L, new InscripcionCursadaRequest(1L));
 
@@ -155,7 +155,7 @@ class InscripcionCursadaServiceImplTest {
                 ConfiguracionInstitucional.builder().fechaCierreCursadas(LocalDateTime.now().plusDays(10)).build()));
         when(inscripcionCursadaRepository.save(any(InscripcionCursada.class))).thenAnswer(inv -> inv.getArgument(0));
         when(inscripcionCursadaMapper.toResponse(any(InscripcionCursada.class))).thenReturn(
-                new InscripcionCursadaResponse(5L, "Materia", "A", "MODIFICADA", LocalDateTime.now(), null, null, List.of()));
+                new InscripcionCursadaResponse(5L, "Materia", "A", "MODIFICADA", LocalDateTime.now(), null, null, List.of(), 1L, 1L, "2026", 1L, "1", "N", "A", "L", null, "PENDIENTE", null));
 
         service.modificar(1L, 5L, new InscripcionCursadaRequest(1L));
 
@@ -169,7 +169,7 @@ class InscripcionCursadaServiceImplTest {
                 .estado(EstadoInscripcion.BAJA).build();
         when(inscripcionCursadaRepository.findByAlumnoId(1L)).thenReturn(List.of(propia));
         when(inscripcionCursadaMapper.toResponse(propia)).thenReturn(
-                new InscripcionCursadaResponse(5L, "Materia", "A", "BAJA", LocalDateTime.now(), null, null, List.of()));
+                new InscripcionCursadaResponse(5L, "Materia", "A", "BAJA", LocalDateTime.now(), null, null, List.of(), 1L, 1L, "2026", 1L, "1", "N", "A", "L", null, "PENDIENTE", null));
 
         List<InscripcionCursadaResponse> resultado = service.listarPorAlumno(1L);
 

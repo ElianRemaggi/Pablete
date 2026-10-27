@@ -23,7 +23,8 @@ public class ValidadorRegularidad implements ValidadorInscripcionFinal {
         EstadoMateria estado = estadoAcademicoService.obtenerEstado(alumno.getUsuarioId(), mesa.getMateria().getId());
         if (estado != EstadoMateria.REGULAR && estado != EstadoMateria.APROBADA) {
             throw new BusinessException("MATERIA_NO_REGULARIZADA",
-                    "Debe tener la materia regularizada (o aprobada) para inscribirse a este final");
+                    "No podés inscribirte al final de " + mesa.getMateria().getNombre()
+                            + " porque todavía no tenés aprobada la cursada");
         }
     }
 }

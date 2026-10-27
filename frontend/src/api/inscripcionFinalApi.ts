@@ -23,6 +23,23 @@ export interface InscripcionFinalResponse {
   alumnoNombre: string;
   alumnoApellido: string;
   alumnoLegajo: string;
+  nota: number | null;
+}
+
+export type ResultadoFinal = 'AUSENTE' | 'DESAPROBADO' | 'APROBADO';
+
+
+
+export async function registrarResultadoFinal(
+  id: number,
+  resultado: ResultadoFinal,
+  nota: number | null,
+): Promise<InscripcionFinalResponse> {
+  const { data } = await httpClient.put<InscripcionFinalResponse>(`/inscripciones-final/${id}/resultado`, {
+    resultado,
+    nota,
+  });
+  return data;
 }
 
 export async function listarInscripcionesFinalPropias(): Promise<InscripcionFinalResponse[]> {

@@ -1,5 +1,6 @@
 package com.instituto.siga.controller;
 
+import com.instituto.siga.dto.request.CalificacionCursadaRequest;
 import com.instituto.siga.dto.request.InscripcionCursadaRequest;
 import com.instituto.siga.dto.response.InscripcionCursadaResponse;
 import com.instituto.siga.service.interfaces.InscripcionCursadaService;
@@ -47,6 +48,12 @@ public class InscripcionCursadaController {
     public ResponseEntity<Void> darDeBaja(@AuthenticationPrincipal Long alumnoId, @PathVariable Long id) {
         inscripcionCursadaService.darDeBaja(alumnoId, id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/calificacion")
+    public ResponseEntity<InscripcionCursadaResponse> calificar(@PathVariable Long id,
+                                                                 @Valid @RequestBody CalificacionCursadaRequest request) {
+        return ResponseEntity.ok(inscripcionCursadaService.calificar(id, request));
     }
 
     @GetMapping("/comision/{comisionId}")

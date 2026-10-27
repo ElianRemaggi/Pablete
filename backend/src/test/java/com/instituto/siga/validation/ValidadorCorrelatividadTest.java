@@ -8,6 +8,8 @@ import com.instituto.siga.entity.Materia;
 import com.instituto.siga.entity.TipoRequisito;
 import com.instituto.siga.exception.BusinessException;
 import com.instituto.siga.repository.CorrelatividadRepository;
+import com.instituto.siga.repository.MateriaRepository;
+import com.instituto.siga.service.impl.RequisitosAcademicosServiceImpl;
 import com.instituto.siga.service.interfaces.EstadoAcademicoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +39,8 @@ class ValidadorCorrelatividadTest {
 
     @BeforeEach
     void setUp() {
-        validador = new ValidadorCorrelatividad(correlatividadRepository, estadoAcademicoService);
+        validador = new ValidadorCorrelatividad(new RequisitosAcademicosServiceImpl(
+                correlatividadRepository, estadoAcademicoService, org.mockito.Mockito.mock(MateriaRepository.class)));
         alumno = Alumno.builder().usuarioId(1L).legajo("LEG-0001").build();
         materiaRequerida = Materia.builder().id(1L).codigo("MAT101").nombre("Programación I").build();
         Materia materiaDestino = Materia.builder().id(2L).codigo("MAT102").nombre("Programación II").build();

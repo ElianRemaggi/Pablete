@@ -31,6 +31,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -80,7 +81,7 @@ class CertificadoServiceImplTest {
         Alumno alumno = alumnoDeEjemplo();
         byte[] pdfFalso = "contenido-pdf".getBytes(StandardCharsets.UTF_8);
         when(alumnoRepository.findById(1L)).thenReturn(Optional.of(alumno));
-        when(certificadoFactory.generarAlumnoRegular(alumno)).thenReturn(pdfFalso);
+        when(certificadoFactory.generarConstanciaAlumnoRegular()).thenReturn(pdfFalso);
         when(certificadoEmitidoRepository.save(any(CertificadoEmitido.class))).thenAnswer(inv -> {
             CertificadoEmitido c = inv.getArgument(0);
             c.setId(10L);

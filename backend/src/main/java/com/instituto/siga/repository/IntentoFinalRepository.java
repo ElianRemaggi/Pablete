@@ -17,4 +17,11 @@ public interface IntentoFinalRepository extends JpaRepository<IntentoFinal, Long
                                          @Param("estados") List<EstadoInscripcion> estados);
 
     List<IntentoFinal> findByInscripcionFinalId(Long inscripcionFinalId);
+
+    /** Otro intento del mismo alumno y materia ya aprobado: sostiene la materia APROBADA al corregir un resultado. */
+    @Query("SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END FROM IntentoFinal i "
+            + "WHERE i.alumno.usuarioId = :alumnoId AND i.materia.id = :materiaId AND i.id <> :excluirId "
+            + "AND i.resultado = com.instituto.siga.entity.ResultadoFinal.APROBADO")
+    boolean existeOtroIntentoAprobado(@Param("alumnoId") Long alumnoId, @Param("materiaId") Long materiaId,
+                                      @Param("excluirId") Long excluirId);
 }

@@ -25,5 +25,6 @@ public interface InscripcionFinalMapper {
     @Mapping(source = "alumno.legajo", target = "alumnoLegajo")
     @Mapping(target = "carreraNombre", ignore = true)
     @Mapping(target = "resultado", ignore = true)
+    @Mapping(target = "nota", ignore = true)
     InscripcionFinalResponse toResponse(InscripcionFinal entity);
 }

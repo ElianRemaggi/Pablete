@@ -55,7 +55,12 @@ export function MisInscripcionesPage() {
               La mesa fue cancelada
             </Typography>
           )}
-          {i.resultado && <Typography variant="caption">Resultado: {i.resultado}</Typography>}
+          {i.resultado && (
+            <Typography variant="caption">
+              Resultado: {i.resultado}
+              {i.nota != null ? ` (nota ${i.nota})` : ''}
+            </Typography>
+          )}
         </Stack>
       ),
     },

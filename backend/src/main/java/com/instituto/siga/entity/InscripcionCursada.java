@@ -49,4 +49,19 @@ public class InscripcionCursada {
 
     @Column(name = "fecha_modificacion")
     private LocalDateTime fechaModificacion;
+
+    /** Nota numerica (1-10) de la cursada; null mientras no se califique. No es la nota del final. */
+    @Column(name = "nota_cursada")
+    private Integer notaCursada;
+
+    /** null equivale a PENDIENTE (sin calificar). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "resultado_cursada", length = 20)
+    private ResultadoCursada resultadoCursada;
+
+    @Column(name = "fecha_calificacion")
+    private LocalDateTime fechaCalificacion;
+
+    @Column(name = "calificado_por")
+    private Long calificadoPor;
 }

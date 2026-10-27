@@ -2,6 +2,9 @@ package com.instituto.siga.certificado;
 
 import com.instituto.siga.entity.Alumno;
 import com.instituto.siga.entity.EstadoAcademicoMateria;
+import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.ColumnText;
+import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.BadElementException;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
@@ -46,26 +49,89 @@ public class CertificadoFactory {
     private static final Font PIE = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 8, Color.GRAY);
     private static final String NOMBRE_INSTITUTO = "Instituto Superior de Estudios Técnicos (ISET)";
 
-    public byte[] generarAlumnoRegular(Alumno alumno) {
+    private static final float ALTO_PAGINA = PageSize.LETTER.getHeight();
+    /** Tamano de letra e interlineado medidos sobre el modelo (hoja carta, 612 x 792 pt). */
+    private static final float TAMANO = 9.3f;
+    private static final float INTERLINEADO = 21.7f;
+
+    private static String puntos(int cantidad) {
+        return ".".repeat(cantidad);
+    }
+
+    /**
+     * "Constancia de alumno regular" EN BLANCO con el formato institucional del modelo "ALUMNO REGULAR ISET.pdf"
+     * (marco, logos de la Municipalidad de General Pueyrredon e ISET, texto, sello y firma). Los datos del alumno, la
+     * carrera, el curso y la fecha quedan como lineas punteadas: los completa a mano el alumno o la persona autorizada.
+     * Las medidas estan tomadas del modelo (hoja carta, 612 x 792 pt; coordenadas en puntos desde el borde superior).
+     */
+    public byte[] generarConstanciaAlumnoRegular() {
         ByteArrayOutputStream salida = new ByteArrayOutputStream();
-        Document documento = new Document();
+        Document documento = new Document(PageSize.LETTER, 0, 0, 0, 0);
         try {
-            PdfWriter.getInstance(documento, salida);
+            PdfWriter writer = PdfWriter.getInstance(documento, salida);
             documento.open();
-            documento.add(new Paragraph("Certificado de Alumno Regular", TITULO));
-            documento.add(new Paragraph(" "));
-            documento.add(new Paragraph("Se certifica que " + alumno.getUsuario().getNombre() + " "
-                    + alumno.getUsuario().getApellido() + " (DNI " + alumno.getUsuario().getDni()
-                    + ", legajo " + alumno.getLegajo() + ") reviste la condicion de alumno regular"
-                    + " de esta institucion.", TEXTO));
-            documento.add(new Paragraph(" "));
-            documento.add(new Paragraph("Fecha de emision: " + LocalDate.now().format(FECHA), TEXTO));
-        } catch (DocumentException e) {
-            throw new IllegalStateException("No se pudo generar el certificado de alumno regular", e);
+            PdfContentByte lienzo = writer.getDirectContent();
+
+            lienzo.setLineWidth(0.8f);
+            lienzo.rectangle(55.7f, ALTO_PAGINA - 399f, 499.3f, 372.7f);
+            lienzo.stroke();
+
+            agregarImagen(documento, "certificado/cabecera-mgp.png", 68.5f, 47.7f, 274.2f);
+            agregarImagen(documento, "certificado/logo-iset-constancia.png", 445.5f, 33.7f, 102.2f);
+
+            BaseFont base = BaseFont.createFont(BaseFont.HELVETICA, BaseFont.CP1252, false);
+            BaseFont negrita = BaseFont.createFont(BaseFont.HELVETICA_BOLD, BaseFont.CP1252, false);
+            lienzo.beginText();
+            lienzo.setFontAndSize(negrita, TAMANO);
+            lienzo.showTextAligned(Element.ALIGN_CENTER, "CONSTANCIA DE ALUMNO REGULAR", 305.4f, ALTO_PAGINA - 152f, 0);
+            lienzo.endText();
+
+            Font normal = new Font(base, TAMANO);
+            Paragraph primero = new Paragraph(INTERLINEADO);
+            primero.setAlignment(Element.ALIGN_JUSTIFIED);
+            primero.add(new Chunk("Se deja constancia que, " + puntos(118) + " DNI " + puntos(20)
+                    + " es alumno/a regular del Instituto Superior de Estudios Técnicos, de la carrera "
+                    + puntos(95) + " curso " + puntos(22), normal));
+
+            Paragraph segundo = new Paragraph(INTERLINEADO);
+            segundo.setAlignment(Element.ALIGN_JUSTIFIED);
+            segundo.add(new Chunk("A pedido del interesado/a y para ser presentada ante quien corresponda, se extiende "
+                    + "la presente en la ciudad de Mar del Plata, a los " + puntos(14) + " días del mes " + puntos(24)
+                    + " de " + puntos(16), normal));
+
+            ColumnText texto = new ColumnText(lienzo);
+            texto.setSimpleColumn(68.5f, ALTO_PAGINA - 300f, 543f, ALTO_PAGINA - 163.5f);
+            texto.addElement(primero);
+            texto.addElement(segundo);
+            texto.go();
+
+            lienzo.beginText();
+            lienzo.setFontAndSize(base, TAMANO);
+            lienzo.showTextAligned(Element.ALIGN_CENTER, "Sello del establecimiento", 161.6f, ALTO_PAGINA - 348.5f, 0);
+            lienzo.showTextAligned(Element.ALIGN_CENTER, puntos(49), 458.4f, ALTO_PAGINA - 338.5f, 0);
+            lienzo.showTextAligned(Element.ALIGN_CENTER, "Firma y sello aclaratorio del", 458.4f, ALTO_PAGINA - 349f, 0);
+            lienzo.showTextAligned(Element.ALIGN_CENTER, "Director / Secretario", 458.4f, ALTO_PAGINA - 359.5f, 0);
+            lienzo.endText();
+        } catch (DocumentException | IOException e) {
+            throw new IllegalStateException("No se pudo generar la constancia de alumno regular", e);
         } finally {
             documento.close();
         }
         return salida.toByteArray();
+    }
+
+    /** Coloca un recurso PNG con su esquina superior izquierda en (x, yDesdeArriba) y el ancho indicado. */
+    private void agregarImagen(Document documento, String recurso, float x, float yDesdeArriba, float ancho)
+            throws DocumentException, IOException {
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream(recurso)) {
+            if (in == null) {
+                throw new IOException("Falta el recurso " + recurso);
+            }
+            Image imagen = Image.getInstance(in.readAllBytes());
+            imagen.scaleAbsolute(ancho, ancho * imagen.getHeight() / imagen.getWidth());
+            imagen.setAbsolutePosition(x, ALTO_PAGINA - yDesdeArriba - imagen.getScaledHeight());
+            documento.add(imagen);
+        }
     }
 
     public byte[] generarAnaliticoParcial(Alumno alumno, List<EstadoAcademicoMateria> historial) {

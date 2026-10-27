@@ -24,11 +24,18 @@ class CertificadoFactoryTest {
     }
 
     @Test
-    void generarAlumnoRegular_devuelveUnPdfValidoYNoVacio() {
-        byte[] pdf = certificadoFactory.generarAlumnoRegular(alumnoDeEjemplo());
+    void generarConstanciaAlumnoRegular_esElFormularioEnBlancoDelModelo() throws Exception {
+        byte[] pdf = certificadoFactory.generarConstanciaAlumnoRegular();
 
-        assertThat(pdf).isNotEmpty();
         assertThat(new String(pdf, 0, 5, StandardCharsets.ISO_8859_1)).isEqualTo("%PDF-");
+        com.lowagie.text.pdf.PdfReader lector = new com.lowagie.text.pdf.PdfReader(pdf);
+        assertThat(lector.getNumberOfPages()).isEqualTo(1);
+        String texto = new com.lowagie.text.pdf.parser.PdfTextExtractor(lector).getTextFromPage(1).replaceAll("\\s+", " ");
+        assertThat(texto).contains("CONSTANCIA DE ALUMNO REGULAR").contains("Se deja constancia que").contains("DNI")
+                .contains("es alumno/a regular del Instituto Superior de Estudios Técnicos").contains("Mar del Plata")
+                .contains("Sello del establecimiento").contains("Director / Secretario").contains("....");
+        // En blanco: no lleva ningun dato del alumno ni fecha.
+        assertThat(texto).doesNotContain("Perez").doesNotContain("30111111");
     }
 
     @Test

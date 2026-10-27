@@ -26,5 +26,6 @@ public record InscripcionFinalResponse(
         String alumnoDni,
         String alumnoNombre,
         String alumnoApellido,
-        String alumnoLegajo) {
+        String alumnoLegajo,
+        Integer nota) {
 }

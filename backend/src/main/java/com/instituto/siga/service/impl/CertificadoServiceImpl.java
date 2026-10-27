@@ -35,6 +35,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CertificadoServiceImpl implements CertificadoService {
 
+
     private final AlumnoRepository alumnoRepository;
     private final EstadoAcademicoMateriaRepository estadoAcademicoMateriaRepository;
     private final CertificadoEmitidoRepository certificadoEmitidoRepository;
@@ -49,7 +50,7 @@ public class CertificadoServiceImpl implements CertificadoService {
     @Transactional
     public byte[] generarAlumnoRegularPropio(Long usuarioId) {
         Alumno alumno = buscarOFallar(usuarioId);
-        byte[] pdf = certificadoFactory.generarAlumnoRegular(alumno);
+        byte[] pdf = constanciaAlumnoRegular(alumno);
         registrar(alumno, TipoCertificado.ALUMNO_REGULAR, pdf);
         return pdf;
     }
@@ -70,7 +71,7 @@ public class CertificadoServiceImpl implements CertificadoService {
     @Transactional
     public byte[] generarAlumnoRegularParaAlumno(Long alumnoId) {
         Alumno alumno = buscarOFallar(alumnoId);
-        byte[] pdf = certificadoFactory.generarAlumnoRegular(alumno);
+        byte[] pdf = constanciaAlumnoRegular(alumno);
         registrar(alumno, TipoCertificado.ALUMNO_REGULAR, pdf);
         return pdf;
     }
@@ -119,6 +120,12 @@ public class CertificadoServiceImpl implements CertificadoService {
         InscripcionFinal inscripcion = inscripcionFinalRepository.findByIdAndAlumnoId(inscripcionId, alumnoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada: " + inscripcionId));
         return emitirComprobanteFinal(inscripcion);
+    }
+
+    /** La constancia es solo el formato institucional en blanco: el alumno o la persona autorizada la completa a mano.
+     * Por eso no se evalua ninguna regla de regularidad ni se cargan datos del alumno en el documento. */
+    private byte[] constanciaAlumnoRegular(Alumno alumno) {
+        return certificadoFactory.generarConstanciaAlumnoRegular();
     }
 
     private byte[] emitirComprobanteCursada(InscripcionCursada inscripcion) {

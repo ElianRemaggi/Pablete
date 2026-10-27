@@ -1,7 +1,9 @@
 package com.instituto.siga.service.impl;
 
 import com.instituto.siga.audit.AuditoriaPublisher;
+import com.instituto.siga.dto.request.ClaveNuevaRequest;
 import com.instituto.siga.dto.request.PerfilUpdateRequest;
+import com.instituto.siga.repository.RefreshTokenRepository;
 import com.instituto.siga.dto.request.RegistroRequest;
 import com.instituto.siga.dto.request.UsuarioRequest;
 import com.instituto.siga.dto.request.UsuarioRolesRequest;
@@ -44,6 +46,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioMapper usuarioMapper;
     private final PasswordEncoder passwordEncoder;
     private final AuditoriaPublisher auditoriaPublisher;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     @PreAuthorize("hasRole('ADMINISTRADOR')")
@@ -166,6 +169,18 @@ public class UsuarioServiceImpl implements UsuarioService {
         Usuario guardado = usuarioRepository.save(usuario);
         auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "USUARIO_DESACTIVADO", "Usuario", guardado.getId(), Map.of());
         return usuarioMapper.toResponse(guardado);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @Transactional
+    public void crearNuevaClave(Long id, ClaveNuevaRequest request) {
+        Usuario usuario = buscarOFallar(id);
+        usuario.setPasswordHash(passwordEncoder.encode(request.nuevaClave()));
+        usuarioRepository.save(usuario);
+        refreshTokenRepository.revocarTodosDelUsuario(id);
+        // Nunca se audita la clave, solo el hecho.
+        auditoriaPublisher.publicar(SecurityUtils.usuarioActualId(), "USUARIO_CLAVE_RESTABLECIDA", "Usuario", id, Map.of());
     }
 
     @Override
